@@ -1,0 +1,20 @@
+{% extends 'pos/base.html' %}
+{% block body %}
+    <div class="flex flex-col justify-center items-center h-dvh">
+        <form action="" method="post" class="border border-border text-text bg-surface rounded-md px-6 py-10 shadow-default flex flex-col justify-center items-center w-80">
+            {% csrf_token %}
+            <h1 class="font-bold text-3xl mb-5">Login</h1>
+            <div class="text-red-500">{{ form.non_field_errors }}</div>
+            <div class="flex flex-col items-start justify-center w-full">
+                <span class="text-secondary-text text-sm">{{ form.username.label_tag }}</span>
+                {{ form.username }}
+            </div>
+
+            <div class="flex flex-col items-start justify-center w-full">
+                <span class="text-secondary-text text-sm">{{ form.password.label_tag }}</span>
+                {{ form.password }}
+            </div>
+            <button type="submit" class="bg-primary rounded-md cursor-pointer text-primary-text font-semibold w-full py-3 px-5">Login</button>
+        </form>
+    </div>
+{% endblock %}
