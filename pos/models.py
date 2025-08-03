@@ -11,6 +11,7 @@ from django.utils import timezone
 class User(AbstractUser):
     full_name = models.CharField(max_length=100)
     pfp = models.ImageField(upload_to="pfps/", null=True, blank=True)
+    can_create_shops = models.BooleanField(blank=True, default=True)
     
     def get_pfp_url(self):
         if self.pfp:
@@ -55,7 +56,7 @@ class Permissions(models.Model):
     
     
 class ShopManager(Permissions):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shops_managed')
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
     

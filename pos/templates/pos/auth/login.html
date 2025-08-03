@@ -1,7 +1,7 @@
 {% extends 'pos/base.html' %}
 {% block body %}
     <div class="flex flex-col justify-center items-center h-dvh">
-        <form action="" method="post" class="border border-border text-text bg-surface rounded-md px-6 py-10 shadow-default flex flex-col justify-center items-center w-80">
+        <form action="" method="post" class="border border-border shadow-md text-text bg-surface rounded-md px-6 py-10 flex flex-col justify-center items-center w-80">
             {% csrf_token %}
             <h1 class="font-bold text-3xl mb-5">Login</h1>
             <div class="text-red-500">{{ form.non_field_errors }}</div>

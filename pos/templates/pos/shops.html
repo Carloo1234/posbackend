@@ -1,9 +1,0 @@
-{% extends 'pos/base.html' %}
-{% block body %}
-    <h1>Hello {{ user.full_name }}</h1>
-    <ul>
-        {% for shop in shops %}
-        {{ shop.name }}
-        {% endfor %}
-    </ul>
-{% endblock %}

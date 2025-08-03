@@ -1,0 +1,23 @@
+{% extends 'pos/home/home_base.html' %}
+
+{% block content %}
+    {% if user.can_create_shops %}
+        <form action="{% url 'create_shop' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="bg-primary text-primary-text hover:bg-primary-hover rounded-md cursor-pointer font-semibold py-2 px-5">Create Shop</button>
+        </form>
+    {% endif %}
+    <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {% for shop in owned_shops %}
+            <a href="#" class="bg-surface border-2 border-border hover:border-primary hover:border-2 p-4 rounded-lg shadow-sm flex flex-col justify-center items-center">
+                <div class="flex w-full justify-start items-center gap-5">
+                    <img src="{{ shop.get_logo_url }}" alt="Shop logo" class="h-20 w-20 rounded-full">
+                    <div class="flex flex-col">
+                        <span class="text-text font-semibold text-xl">{{ shop.name }}</span>
+                        <span class="text-secondary-text">Owner</span>
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+{% endblock %}

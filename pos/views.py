@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import AuthenticationForm
 
 # Create your views here.
@@ -12,13 +12,7 @@ def index(request):
         return redirect('login')
     else: 
         # Authenticated
-        return redirect('shops')
-            
-
-@require_http_methods(["GET", "POST"])
-def login(request):
-    if request.method == "GET":
-        return render(request, 'pos/auth/login.html')
+        return redirect('home')
     
 class CustomLoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
@@ -38,9 +32,37 @@ class Login(LoginView):
     def get_success_url(self):  
         return self.success_url
     authentication_form = CustomLoginForm
+    
+class Logout(LogoutView):
+    template_name='pos/auth/logout.html'
 
+
+    
 @require_http_methods(["GET"])
-def shops(request):
-    return render(request, "pos/shops.html", {'shops': request.user.shops.all()})
+def home(request):
+    return redirect('owned_shops')
+
+@require_http_methods(["GET", "POST"])
+def owned_shops(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    owned_shops = request.user.shops.all()
+    shop_managers = request.user.shops_managed.all()
+    managed_shops = []
+    for shop_manager in shop_managers:
+        managed_shops.append(shop_manager.shop)
+    
+    return render(request, "pos/home/owned_shops.html", {'owned_shops': owned_shops,
+                                              'managed_shops': managed_shops
+                                              })
+
+def managed_shops(request):
+    return render(request, "pos/home/managed_shops.html")
+
+def manager_invites(request):
+    return render(request, "pos/home/manager_invites.html")
+
+def create_shop(request):
+    return HttpResponse("In construction", status=200)
 
     

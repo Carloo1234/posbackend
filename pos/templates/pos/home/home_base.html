@@ -1,0 +1,33 @@
+{% extends 'pos/base.html' %}
+{% block body %}
+    <div class="p-6 flex flex-col max-w-4xl mx-auto">
+        <header class="flex justify-between mb-5 border-b border-border py-2">
+            <div class="flex items-center gap-4 hover:bg-hover rounded-md px-4 py-2 cursor-pointer">
+                <img src="{{ user.get_pfp_url }}" alt="pfp" class="h-16 rounded-full">
+                <div class="flex flex-col items-start">
+                    <h1 class="text-text font-bold text-2xl">{{ user.full_name }}</h1>
+                    <span class="text-secondary-text">{{ user.username }}</span>
+                </div>
+            </div>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button     type="submit" class="bg-red-500 hover:bg-red-600 active:ring-red-400 active:ring-2 active:ring-offset-1 text-primary-text rounded-md cursor-pointer font-semibold py-2 px-5">Logout</button>
+            </form>
+        </header>
+        {% url 'owned_shops' as owned_shops_url %}
+        {% url 'managed_shops' as managed_shops_url %}
+        {% url 'manager_invites' as manager_invites_url %}
+        
+        <main>
+            <div class="w-full flex flex-1 bg-secondary-surface rounded-full p-0.5 mb-4">
+                <a href="{{ owned_shops_url }}" class="{% if request.path == owned_shops_url %}bg-surface{% endif %} grow rounded-full flex justify-center">Owned Shops</a> <!-- Active -->
+                <a href="{{ managed_shops_url }}" class="{% if request.path == managed_shops_url %}bg-surface{% endif %} grow rounded-full flex justify-center">Managed Shops</a>
+                <a href="{{ manager_invites_url }}" class="{% if request.path == manager_invites_url %}bg-surface{% endif %} grow rounded-full flex justify-center">Shop Invites</a>
+            </div>
+
+
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+{% endblock %}
