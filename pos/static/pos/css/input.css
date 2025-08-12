@@ -33,7 +33,7 @@
     --color-primary: #3b82f6;        /* A strong blue for buttons, etc. */
     --color-primary-hover: #336dcc;
     --color-primary-text: #ffffff;   /* White text on the primary color */
-    --color-hover: #e6e6e6;
+    --color-hover: #F0F0F0;
     --color-accent: #10b981;         /* A green for success messages or highlights */
     --color-border: #e2e8f0;
 
@@ -55,7 +55,7 @@
     --color-primary: #60a5fa;        /* A lighter blue for better contrast */
     --color-primary-hover: #5a9ae8;
     --color-primary-text: #ffffff;   /* Dark text on the light primary color */
-    --color-hover: #1f2937;
+    --color-hover: #202633;
     --color-accent: #34d399;         /* A lighter green */
     --color-border: #494c4f;
 

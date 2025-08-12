@@ -11,7 +11,7 @@
             </div>
             <form action="{% url 'logout' %}" method="post">
                 {% csrf_token %}
-                <button     type="submit" class="bg-red-500 hover:bg-red-600 active:ring-red-400 active:ring-2 active:ring-offset-1 text-primary-text rounded-md cursor-pointer font-semibold py-2 px-5">Logout</button>
+                <button type="submit" class="bg-red-500 hover:bg-red-600 active:ring-red-400 active:ring-2 active:ring-offset-1 text-primary-text rounded-md cursor-pointer font-semibold py-2 px-5">Logout</button>
             </form>
         </header>
         {% url 'owned_shops' as owned_shops_url %}
@@ -20,9 +20,9 @@
         
         <main>
             <div class="w-full flex flex-1 bg-secondary-surface rounded-full p-0.5 mb-4">
-                <a href="{{ owned_shops_url }}" class="{% if request.path == owned_shops_url %}bg-surface{% endif %} grow rounded-full flex justify-center">Owned Shops</a> <!-- Active -->
-                <a href="{{ managed_shops_url }}" class="{% if request.path == managed_shops_url %}bg-surface{% endif %} grow rounded-full flex justify-center">Managed Shops</a>
-                <a href="{{ manager_invites_url }}" class="{% if request.path == manager_invites_url %}bg-surface{% endif %} grow rounded-full flex justify-center">Shop Invites</a>
+                <a href="{{ owned_shops_url }}" class="{% if request.path == owned_shops_url %}bg-surface shadow-sm text-text{% endif %} {% if request.path != owned_shops_url %}hover:bg-hover text-secondary-text{% endif %} grow rounded-full flex justify-center">Owned Shops</a> <!-- Active -->
+                <a href="{{ managed_shops_url }}" class="{% if request.path == managed_shops_url %}bg-surface shadow-sm text-text{% endif %} {% if request.path != managed_shops_url %}hover:bg-hover text-secondary-text{% endif %} grow rounded-full flex justify-center">Managed Shops</a>
+                <a href="{{ manager_invites_url }}" class="{% if request.path == manager_invites_url %}bg-surface shadow-sm text-text{% endif %} {% if request.path != manager_invites_url %}hover:bg-hover text-secondary-text{% endif %} grow rounded-full flex justify-center">Shop Invites</a>
             </div>
 
 

@@ -3,6 +3,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from .utils import generate_ean13_without_check, is_valid_ean13
 from django.utils import timezone
+from django.utils.text import slugify
+from .permissions import PERMISSION_LABELS, default_permissions
 
 # Create your models here.
 
@@ -29,6 +31,7 @@ class Shop(models.Model):
     managers = models.ManyToManyField(User, through='ShopManager')
     created_at = models.DateTimeField(auto_now_add=True)
     logo = models.ImageField(upload_to="logos/", null=True, blank=True)
+    slug = models.SlugField(unique=True, blank=True)
     discount_percentage = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     tax_percentage = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     currency_code = models.CharField(max_length=10) # Examples: EGP, $, ect...
@@ -38,46 +41,49 @@ class Shop(models.Model):
             return self.logo.url
         return "/media/logos/defaultlogo.jpg"
     
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            while Shop.objects.filter(slug=slug).exists():
+                slug = f'{base_slug}-{counter}'
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f'{self.name} ({self.pk})'
     
-class Permissions(models.Model):
-    can_view_products = models.BooleanField(default=False)
-    can_edit_products = models.BooleanField(default=False)
-
-    can_view_sales = models.BooleanField(default=False)
-    can_edit_sales = models.BooleanField(default=False)
-
-    can_view_managers = models.BooleanField(default=False)
-    can_edit_managers = models.BooleanField(default=False)
-
-    class Meta:
-        abstract = True
     
-    
-class ShopManager(Permissions):
+class ShopManager(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shops_managed')
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    permissions = models.JSONField(default=default_permissions)
     joined_at = models.DateTimeField(auto_now_add=True)
+    
+    def has_permission(self, perm_name):
+        return self.permissions.get(perm_name, False)
     
     def __str__(self):
         return f'{self.user} is managing {self.shop}'
     
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'shop'], name='unique_user_shop_manager')
+        ]
+    
 
-class ManagerInvite(Permissions):
+class ManagerInvite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="invites_recieved")
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
     sent_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="invites_sent", blank=True)
+    permissions = models.JSONField(default=default_permissions)
     created_at = models.DateTimeField(auto_now_add=True) # for expiry date
     
     def accept(self):
         ShopManager.objects.create(user=self.user, shop=self.shop,
-                                   can_view_products=self.can_view_products,
-                                   can_edit_products=self.can_edit_products,
-                                   can_view_sales=self.can_view_sales,
-                                   can_edit_sales=self.can_edit_sales,
-                                   can_view_managers=self.can_view_managers,
-                                   can_edit_managers=self.can_edit_managers)
+                                   permissions=self.permissions)
         self.delete()
     
     def decline(self):
@@ -90,6 +96,20 @@ class ManagerInvite(Permissions):
         constraints = [
             models.UniqueConstraint(fields=['user', 'shop'], name='unique_user_shop_invite')
         ]
+        
+    
+class Category(models.Model):
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="categories")
+    name = models.CharField(max_length=100)
+    
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['shop', 'name'], name="unique_shop_name_category")]
+
+# helper: ensure there's an "Uncategorized" for a shop
+def get_or_create_uncategorized(shop: Shop):
+    category, _created = Category.objects.get_or_create(shop=shop, name="Uncategorized")
+    return category
+
     
 
 class Product(models.Model):
@@ -99,10 +119,12 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock_quantity = models.IntegerField()
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2)
-    price_after_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True)
+    price_after_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     
     is_deleted = models.BooleanField(default=False)
     marked_for_deletion_at = models.DateTimeField(null=True, blank=True)
+    
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
     
     def soft_delete(self): # For syncing with offline POS terminal.
         self.is_deleted = True
@@ -112,7 +134,7 @@ class Product(models.Model):
     def clean(self):
         errors = {}
 
-        if not is_valid_ean13(self.barcode):
+        if self.barcode and not is_valid_ean13(self.barcode):
             errors['barcode'] = 'Invalid barcode check digit.'
 
         if self.discount_percentage > 100:
@@ -131,11 +153,15 @@ class Product(models.Model):
         
     def save(self, *args, **kwargs):
         self.full_clean()
+        if not self.category:
+            self.category = get_or_create_uncategorized(self.shop) # To create category
         self.price_after_discount = ((100-self.discount_percentage)/100)*self.price
+        
+        
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f'{self.name} - {self.price_after_discount}{self.shop.currency_code}'
+        return f'{self.name} - {self.shop.currency_code}{self.price_after_discount}'
         
     class Meta:
         constraints = [

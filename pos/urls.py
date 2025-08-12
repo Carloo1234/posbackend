@@ -10,6 +10,6 @@ urlpatterns = [
     path('home/owned-shops/', views.owned_shops, name='owned_shops'),
     path('home/managed-shops/', views.managed_shops, name='managed_shops'),
     path('home/manager-invites/', views.manager_invites, name='manager_invites'),
-    path('create_shop/', views.create_shop, name='create_shop')
-    
+    path('create_shop/', views.create_shop, name='create_shop'),
+    path('shops/<str:slug>/dashboard', views.shop_dashboard, name='dashboard'),
 ]
