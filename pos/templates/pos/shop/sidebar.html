@@ -1,0 +1,59 @@
+{% load static %}
+<div id="sidebar" class="bg-surface h-dvh w-[250px] p-3 transition-all duration-300 border-r border-r-border">
+    <!-- Sidebar Header -->
+    <div id="sidebar-header" class="mb-4 border-b border-b-border flex w-full justify-between items-center">
+        <div id="shop-details" class="flex gap-2 p-2 rounded-md overflow-hidden">
+            <img src="{{ shop.get_logo_url }}" class="rounded-full h-10" alt="">
+            <div class="flex flex-col justify-center overflow-hidden text-nowrap">
+                <span class="text-text text-lg font-semibold">{{ shop.name }}</span>
+                <span class="text-secondary-text text-sm">
+                    {% if shop.owner == user %}
+                    Owned by you
+                    {% else %}
+                    Owned by '{{ shop.owner }}'
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="h-[64px] flex items-center">
+            <button id="sidebar-btn">
+                <svg class="w-8 h-8 fill-text cursor-pointer hover:bg-hover rounded-md p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                    <path d="M160-240q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h640q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H160Zm0-200q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h640q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H160Zm0-200q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h640q17 0 28.5 11.5T840-680q0 17-11.5 28.5T800-640H160Z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <ul class="mt-2 flex flex-col gap-2">  
+        <li>
+            <a href="#" class="sidebar-item flex items-center justify-start gap-1 hover:bg-hover cursor-pointer rounded-md h-10 pl-2
+                {% if active_page == 'dashboard' %}
+                fill-text text-text bg-hover
+                {% else %}
+                fill-secondary-text text-secondary-text
+                {% endif %}">
+                <svg class="h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                    <path d="M200-520q-33 0-56.5-23.5T120-600v-160q0-33 23.5-56.5T200-840h160q33 0 56.5 23.5T440-760v160q0 33-23.5 56.5T360-520H200Zm0 400q-33 0-56.5-23.5T120-200v-160q0-33 23.5-56.5T200-440h160q33 0 56.5 23.5T440-360v160q0 33-23.5 56.5T360-120H200Zm400-400q-33 0-56.5-23.5T520-600v-160q0-33 23.5-56.5T600-840h160q33 0 56.5 23.5T840-760v160q0 33-23.5 56.5T760-520H600Zm0 400q-33 0-56.5-23.5T520-200v-160q0-33 23.5-56.5T600-440h160q33 0 56.5 23.5T840-360v160q0 33-23.5 56.5T760-120H600ZM200-600h160v-160H200v160Zm400 0h160v-160H600v160Zm0 400h160v-160H600v160Zm-400 0h160v-160H200v160Zm400-400Zm0 240Zm-240 0Zm0-240Z"/>
+                </svg>
+                <div>
+                    <span href="" class="sidebar-item-label text-base font-medium">Dashboard</span>
+                </div>
+            </a>
+        </li>
+        <li>
+            <a href="#" class="sidebar-item flex items-center justify-start gap-1 hover:bg-hover cursor-pointer rounded-md h-10 pl-2
+                {% if active_page == 'products' %}
+                fill-text text-text bg-hover
+                {% else %}
+                fill-secondary-text text-secondary-text
+                {% endif %}">
+                <svg class="fill-secondary-text h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                    <path d="M440-183v-274L200-596v274l240 139Zm80 0 240-139v-274L520-457v274Zm-40-343 237-137-237-137-237 137 237 137ZM160-252q-19-11-29.5-29T120-321v-318q0-22 10.5-40t29.5-29l280-161q19-11 40-11t40 11l280 161q19 11 29.5 29t10.5 40v318q0 22-10.5 40T800-252L520-91q-19 11-40 11t-40-11L160-252Zm320-228Z"/>
+                </svg>
+                <div>
+                    <span href="" class="sidebar-item-label text-base font-medium">Products</span>
+                </div>
+            </a>
+        </li>
+    </ul>
+</div>

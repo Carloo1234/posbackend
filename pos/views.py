@@ -110,5 +110,5 @@ def shop_dashboard(request, slug): # /shops/<str:slug>/dashboard
     managed_and_owned_shops = request.user.shops.all() | Shop.objects.filter(id__in=request.user.shops_managed.values_list("shop_id", flat=True))
     if not managed_and_owned_shops.filter(pk=shop.pk).exists():
         return render(request, "pos/errors/403.html")
-    return render(request, "pos/shop/dashboard.html")
+    return render(request, "pos/shop/dashboard.html", {'shop': shop, 'active_page': 'dashboard'})
     
