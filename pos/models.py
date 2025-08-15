@@ -22,7 +22,6 @@ class User(AbstractUser):
     
     def __str__(self):
         return f'{self.full_name} ({self.pk})'
-    
 
     
 class Shop(models.Model):
@@ -50,7 +49,9 @@ class Shop(models.Model):
                 slug = f'{base_slug}-{counter}'
                 counter += 1
             self.slug = slug
+            
         super().save(*args, **kwargs)
+        category, isCreated = Category.objects.get_or_create(shop=self, name="Uncategorized")
     
     def __str__(self):
         return f'{self.name} ({self.pk})'
@@ -102,13 +103,12 @@ class Category(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="categories")
     name = models.CharField(max_length=100)
     
+    def __str__(self):
+        return f'{self.name} - {self.shop}'
+    
     class Meta:
         constraints = [models.UniqueConstraint(fields=['shop', 'name'], name="unique_shop_name_category")]
 
-# helper: ensure there's an "Uncategorized" for a shop
-def get_or_create_uncategorized(shop: Shop):
-    category, _created = Category.objects.get_or_create(shop=shop, name="Uncategorized")
-    return category
 
     
 
@@ -154,7 +154,7 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         if not self.category:
-            self.category = get_or_create_uncategorized(self.shop) # To create category
+            self.category = Category.objects.get_or_create(shop=self, name="Uncategorized") # To create category
         self.price_after_discount = ((100-self.discount_percentage)/100)*self.price
         
         

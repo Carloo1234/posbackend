@@ -6,8 +6,10 @@
 {% block body %}
     <div class="flex">
         {% include 'pos/shop/sidebar.html' %}
-        <main>
-            <span class="text-text">Main content</span>
+        <main class="p-5">
+            {% block content %}
+                <span class="text-text">No content</span>
+            {% endblock %}
         </main>
     </div>
 {% endblock %}

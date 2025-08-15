@@ -1,12 +1,15 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .permissions import PERMISSION_LABELS
-from .models import ManagerInvite, Shop
+from .permissions import PERMISSION_LABELS, default_permissions
+from .models import ManagerInvite, Shop, ShopManager, Product
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView, ListView
 
 # Create your views here.
 @require_http_methods(["GET"])
@@ -100,15 +103,111 @@ def manager_invites(request):
 def create_shop(request):
     return HttpResponse("In construction", status=200)
 
+def get_shop_and_role(request, slug):
+    shop = Shop.objects.filter(slug=slug).first()
+    if not shop:
+        return None, None, None  # Shop not found
+
+    if request.user.shops.filter(pk=shop.pk).exists():
+        return shop, 'owner', None
+
+    shop_manager = request.user.shops_managed.filter(shop=shop).first()
+    if shop_manager:
+        return shop, 'manager', shop_manager
+
+    return shop, None, None  # Shop exists but no access
+
 @login_required
 @require_http_methods(["GET"])
 def shop_dashboard(request, slug): # /shops/<str:slug>/dashboard
-    if not Shop.objects.filter(slug=slug).exists():
-        # Shop doesn't exist
-        return render(request, "pos/errors/404.html", {'message': 'shop not found. Make sure you have the correct url.'}, status=404)
-    shop = Shop.objects.get(slug=slug)
-    managed_and_owned_shops = request.user.shops.all() | Shop.objects.filter(id__in=request.user.shops_managed.values_list("shop_id", flat=True))
-    if not managed_and_owned_shops.filter(pk=shop.pk).exists():
-        return render(request, "pos/errors/403.html")
-    return render(request, "pos/shop/dashboard.html", {'shop': shop, 'active_page': 'dashboard'})
+    shop, role, shop_manager = get_shop_and_role(request, slug)
+
+    if not shop:
+        raise Http404
+        # return render(request, "pos/errors/404.html", {
+        #     'message': 'Shop not found. Make sure you have the correct URL.'
+        # }, status=404)
+
+    if not role:  # Means no permission
+        return render(request, 'pos/errors/403.html', status=403)
+
+    return render(request, "pos/shop/dashboard.html", {
+        'shop': shop,
+        'active_page': 'dashboard',
+        'isOwner': role == 'owner',
+        'shop_manager': shop_manager
+    })
     
+@login_required
+@require_http_methods(["GET"])
+def shop_products(request, slug): # /shops/<str:slug>/products
+    shop, role, shop_manager = get_shop_and_role(request, slug)
+
+    if not shop:
+        return render(request, "pos/errors/404.html", {
+            'message': 'Shop not found. Make sure you have the correct URL.'
+        }, status=404)
+
+    if not role:  # Means no permission
+        return render(request, 'pos/errors/403.html', status=403)
+
+    return render(request, "pos/shop/products.html", {
+        'shop': shop,
+        'active_page': 'products',
+        'isOwner': role == 'owner',
+        'shop_manager': shop_manager
+    })
+    
+    
+class ShopAccessMixin(LoginRequiredMixin):
+    required_perms = []
+    active_page = None
+
+    def dispatch(self, request, *args, **kwargs):
+        slug = self.kwargs.get("slug")
+        shop = get_object_or_404(Shop, slug=slug)
+        
+        # Owner
+        if request.user.shops.filter(pk=shop.pk).exists():
+            self.shop = shop
+            self.isOwner = True
+            self.shop_manager = None
+            return super().dispatch(request, *args, **kwargs)
+        
+        # Manager
+        shop_manager = request.user.shops_managed.filter(shop=shop).first()
+        if shop_manager:
+            # Has permissions
+            has_perm = True
+            for perm in self.required_perms:
+                if not shop_manager.has_permission(perm):
+                    has_perm = False
+                    
+            if has_perm:
+                self.shop = shop
+                self.isOwner = False
+                self.shop_manager = shop_manager
+                return super().dispatch(request, *args, **kwargs)
+        # Not allowed
+        raise PermissionDenied("User doesnt have permission.")
+    
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        context.update({
+            'shop': self.shop,
+            'isOwner': self.isOwner,
+            'shop_manager': self.shop_manager,
+            'active_page': self.active_page
+        })
+        return context
+        
+        
+class DashboardView(ShopAccessMixin, TemplateView):
+    template_name = "pos/shop/dashboard.html"
+    active_page = 'dashboard' # For context
+    
+class ProductView(ShopAccessMixin, ListView):
+    template_name = "pos/shop/products.html"
+    active_page = 'products' # For context
+    def get_queryset(self):
+        return Product.objects.filter(shop=self.shop)

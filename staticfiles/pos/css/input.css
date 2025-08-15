@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-secondary-surface: var(--color-secondary-surface);
+  --color-text: var(--color-text);
+  --color-secondary-text: var(--color-secondary-text);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-text: var(--color-primary-text);
+  --color-hover: var(--color-hover);
+  --color-accent: var(--color-accent);
+  --color-border: var(--color-border)
+}
+
+@layer theme {
+
+  /* The "white-theme" is our default. These values will be used unless a different theme class is applied.
+  */
+  :root,
+  .white-theme {
+    /* Backgrounds */
+    --color-background: #f9fafb;     /* A very light gray background */
+    --color-surface: #ffffff;        /* Pure white for card-like elements */
+    --color-secondary-surface: #E7E7E7;
+
+    /* Text */
+    --color-text: #1f2937;           /* A dark, almost black text */
+    --color-secondary-text: #6b7280; /* A medium gray for secondary text */
+
+    /* Primary and Accent Colors */
+    --color-primary: #3b82f6;        /* A strong blue for buttons, etc. */
+    --color-primary-hover: #336dcc;
+    --color-primary-text: #ffffff;   /* White text on the primary color */
+    --color-hover: #F0F0F0;
+    --color-accent: #10b981;         /* A green for success messages or highlights */
+    --color-border: #e2e8f0;
+
+  }
+
+  /* The "dark-theme" overrides the default values.
+  */
+  .dark-theme {
+    /* Backgrounds */
+    --color-background: #111827;     /* A dark background */
+    --color-surface: #1f2937;        /* A slightly darker gray for cards */
+    --color-secondary-surface: #3B4550;
+
+    /* Text */
+    --color-text: #f3f4f6;           /* A light gray for all text */
+    --color-secondary-text: #9ca3af; /* A lighter gray for secondary text */
+
+    /* Primary and Accent Colors */
+    --color-primary: #60a5fa;        /* A lighter blue for better contrast */
+    --color-primary-hover: #5a9ae8;
+    --color-primary-text: #ffffff;   /* Dark text on the light primary color */
+    --color-hover: #202633;
+    --color-accent: #34d399;         /* A lighter green */
+    --color-border: #494c4f;
+
+  }
+
+  /* A "blue-theme" with its own distinct palette.
+  */
+  .blue-theme {
+    /* Backgrounds */
+    --color-background: #0ea5e9;     /* A strong sky blue background */
+    --color-surface: #38bdf8;        /* A lighter blue for cards */
+    --color-secondary-surface: #ffffff;
+
+    /* Text */
+    --color-text: #083344;           /* Very dark blue text */
+    --color-secondary-text: #0e7490; /* A darker blue for secondary text */
+
+    /* Primary and Accent Colors */
+    --color-primary: #f0f9ff;        /* A very light blue/white */
+    --color-primary-hover: #dae4eb;
+    --color-primary-hover: #5a9ae8;
+    --color-primary-text: #0e7490;   /* A dark blue text on the light primary */
+    --color-hover: #1f2937;
+    --color-accent: #22c55e;         /* A vibrant green */
+    --color-border: #e2e8f0;
+
+  }
+}

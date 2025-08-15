@@ -1,0 +1,10 @@
+{% extends 'pos/shop/shop_base.html' %}
+
+{% block content %}
+    <h2 class="text-text text-xl font-bold">Products:</h2>
+    <ul>
+        {% for product in product_list %}
+            <li class="text-text">- {{ product }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

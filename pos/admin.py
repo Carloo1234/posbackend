@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Shop, ShopManager, ManagerInvite, Product, Sale, SaleProduct
+from .models import User, Shop, ShopManager, ManagerInvite, Product, Sale, SaleProduct, Category
 
 # Register your models here.
 
@@ -10,3 +10,4 @@ admin.site.register(ManagerInvite)
 admin.site.register(Product)
 admin.site.register(Sale)
 admin.site.register(SaleProduct)
+admin.site.register(Category)
