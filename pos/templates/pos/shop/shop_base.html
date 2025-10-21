@@ -6,10 +6,17 @@
 {% block body %}
     <div class="flex h-dvh">
         {% include 'pos/shop/sidebar.html' %}
-        <main class="p-5 w-full overflow-y-auto">
-            {% block content %}
-                <span class="text-text">No content</span>
-            {% endblock %}
+        <main class="w-full overflow-y-auto">
+            <header class="h-[76px] flex items-center px-4 border-b border-b-border bg-surface sticky top-0 z-10">
+                {% block header %}
+                    {% include "pos/shop/breadcrumbs.html" %}
+                {% endblock %}
+            </header>
+            <div class="p-5">
+                {% block content %}
+                    <span class="text-text">No content</span>
+                {% endblock %}
+            </div>
         </main>
     </div>
 {% endblock %}

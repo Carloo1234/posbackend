@@ -1,0 +1,30 @@
+<div class="flex items-center gap-2 justify-start text-text">
+
+  {# back button — links to the previous breadcrumb #}
+  {% if breadcrumbs|length > 2 %}
+    {% with prev=breadcrumbs|slice:":-1"|last %}
+      {% if prev.url %}
+        <a href="{{ prev.url }}" 
+           class="flex items-center gap-1 text-sm text-text hover:text-primary bg-hover p-2 rounded-md shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </a>
+      {% endif %}
+    {% endwith %}
+  {% endif %}
+
+  {# breadcrumb nav — loops through all breadcrumbs #}
+  <nav class="text-text flex items-center gap-1">
+    {% for crumb in breadcrumbs %}
+      {% if crumb.url %}
+        <a href="{{ crumb.url }}" class="hover:text-primary">{{ crumb.name }}</a>
+      {% else %}
+        <span class="text-secondary-text font-medium">{{ crumb.name }}</span>
+      {% endif %}
+      {% if not forloop.last %}
+        <span>></span>
+      {% endif %}
+    {% endfor %}
+  </nav>
+</div>

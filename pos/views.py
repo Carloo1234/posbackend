@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse, Http404, FileResponse
+from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.views import LoginView, LogoutView
@@ -173,6 +174,11 @@ def shop_products(request, slug): # /shops/<str:slug>/products
 class ShopAccessMixin(LoginRequiredMixin):
     required_perms = []
     active_page = None
+    breadcrumbs = []
+
+    def get_breadcrumbs(self):
+        return [{"name": "Shops", "url": reverse("home")},
+                {"name": self.shop.name, "url": reverse("dashboard", args=[self.shop.slug])}]
 
     def dispatch(self, request, *args, **kwargs):
         slug = self.kwargs.get("slug")
@@ -208,7 +214,8 @@ class ShopAccessMixin(LoginRequiredMixin):
             'shop': self.shop,
             'isOwner': self.isOwner,
             'shop_manager': self.shop_manager,
-            'active_page': self.active_page
+            'active_page': self.active_page,
+            'breadcrumbs': self.get_breadcrumbs()
         })
         return context
         
@@ -241,18 +248,30 @@ class ProductView(ShopAccessMixin, ListView):
     def get_queryset(self):
         return Product.objects.filter(shop=self.shop)
     
+    def get_breadcrumbs(self):
+        base = super().get_breadcrumbs()
+        base.extend([{"name": "Products", "url": None}])
+        return base
+    
 class ProductDetailView(ShopAccessMixin, DetailView):
     template_name = "pos/shop/product_details.html"
     active_page = "products"
     required_perms = ["can_view_products"]
     model = Product
     context_object_name = "product"
+    
+    def get_breadcrumbs(self):
+        base = super().get_breadcrumbs()
+        base.extend([{"name": "Products", "url": reverse('products', args=[self.shop.slug])},
+                     {"name": self.product.name, "url": None}])
+        return base
 
     def get_queryset(self):
         return Product.objects.filter(shop=self.shop)
 
     def get_object(self, queryset=None):
-        product = super().get_object(queryset)
+        self.product = super().get_object(queryset)
+        product = self.product
 
         # Normalize discount
         product.discount_percentage = Decimal(product.discount_percentage).normalize()

@@ -1,8 +1,8 @@
 {% load static %}
 {% load permissions_extras %}
-<div id="sidebar" class="bg-surface h-dvh w-[250px] p-3 transition-all duration-300 border-r border-r-border sticky top-0">
+<div id="sidebar" class="bg-surface h-dvh w-[250px] transition-all duration-300 border-r border-r-border sticky top-0 ">
     <!-- Sidebar Header -->
-    <div id="sidebar-header" class="mb-4 border-b border-b-border flex w-full justify-between items-center">
+    <div id="sidebar-header" class="mb-4 border-b mt-3 p-3 border-b-border flex w-full justify-between items-center h-16">
         <div id="shop-details" class="flex gap-2 p-2 rounded-md overflow-hidden">
             <img src="{{ shop.get_logo_url }}" class="rounded-full h-10" alt="">
             <div class="flex flex-col justify-center overflow-hidden text-nowrap">
@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <ul class="mt-2 flex flex-col gap-2">
+    <ul class="mt-2 flex flex-col gap-2 p-3">
         <!-- DASHBOARD -->
         {% if isOwner or shop_manager|has_permission:"can_view_dashboard" %}
         <li>

@@ -8,8 +8,8 @@
 
 {% block content %}
     <div class="flex justify-center items-center w-full p-10">
-        <div class="">
-            <h2 class="text-text text-xl font-bold mb-4">Products:</h2>
+        <div class="flex flex-col">
+
             <table class="table-fixed w-full border-collapse overflow-scroll">
                 <thead class="text-secondary-text">
                     <tr class="text-left border-b border-border h-10 bg-surface rounded-lg">
@@ -22,7 +22,8 @@
                 </thead>
                 <tbody>
                     {% for product in product_list %}
-                    <tr class="text-text border-b border-border cursor-pointer">
+                    <tr class="text-text border-b border-border cursor-pointer"
+                     onclick="if (!event.target.closest('a, button')) window.location.href='{% url 'product_details' shop.slug product.pk %}'">
                         
                         <td class="pl-2 flex items-center gap-2 h-16">
                             <div class="bg-white h-14 w-14 rounded-sm flex justify-center items-center">
