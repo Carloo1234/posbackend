@@ -11,7 +11,10 @@
   --color-primary-text: var(--color-primary-text);
   --color-hover: var(--color-hover);
   --color-accent: var(--color-accent);
-  --color-border: var(--color-border)
+  --color-border: var(--color-border);
+  --color-danger: var(--color-danger);
+  --color-danger-hover: var(--color-danger-hover);
+
 }
 
 @layer theme {
@@ -37,6 +40,11 @@
     --color-accent: #10b981;         /* A green for success messages or highlights */
     --color-border: #e2e8f0;
 
+
+    --color-danger: #dc2626; 
+    --color-danger-hover: #fca5a5;
+    
+
   }
 
   /* The "dark-theme" overrides the default values.
@@ -55,9 +63,12 @@
     --color-primary: #60a5fa;        /* A lighter blue for better contrast */
     --color-primary-hover: #5a9ae8;
     --color-primary-text: #ffffff;   /* Dark text on the light primary color */
-    --color-hover: #202633;
+    --color-hover: #2a3444;
     --color-accent: #34d399;         /* A lighter green */
     --color-border: #494c4f;
+
+    --color-danger: #ef4444; 
+    --color-danger-hover: #7f1d1d;
 
   }
 
@@ -65,22 +76,26 @@
   */
   .blue-theme {
     /* Backgrounds */
-    --color-background: #0ea5e9;     /* A strong sky blue background */
-    --color-surface: #38bdf8;        /* A lighter blue for cards */
-    --color-secondary-surface: #ffffff;
+    --color-background: #0ea5e9;       /* bright sky blue ocean vibes */
+    --color-surface: #38bdf8;          /* lighter blue for cards */
+    --color-secondary-surface: #e0f2fe; /* pale blue, softer than stark white */
 
     /* Text */
-    --color-text: #083344;           /* Very dark blue text */
-    --color-secondary-text: #0e7490; /* A darker blue for secondary text */
+    --color-text: #083344;             /* super dark teal for contrast */
+    --color-secondary-text: #075985;   /* medium teal for secondary */
 
-    /* Primary and Accent Colors */
-    --color-primary: #f0f9ff;        /* A very light blue/white */
-    --color-primary-hover: #dae4eb;
-    --color-primary-hover: #5a9ae8;
-    --color-primary-text: #0e7490;   /* A dark blue text on the light primary */
-    --color-hover: #1f2937;
-    --color-accent: #22c55e;         /* A vibrant green */
-    --color-border: #e2e8f0;
+    /* Primary + Accent */
+    --color-primary: #f0f9ff;          /* icy white-blue */
+    --color-primary-hover: #e0f2fe;    /* light blue hover */
+    --color-primary-text: #0369a1;     /* deep blue text on primaries */
+    --color-accent: #22c55e;           /* still that vibrant green pop */
 
+    /* Generic Hover + Borders */
+    --color-hover: rgba(255, 255, 255, 0.2); /* subtle white overlay */
+    --color-border: #bae6fd;           /* soft aqua border */
+
+    /* Danger */
+    --color-danger: #dc2626;           /* spicy red */
+    --color-danger-hover: #ef4444;     /* brighter hover red */
   }
 }

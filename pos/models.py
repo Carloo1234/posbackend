@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from .utils import generate_ean13_without_check, is_valid_ean13
+from . import utils
 from django.utils import timezone
 from django.utils.text import slugify
 from .permissions import PERMISSION_LABELS, default_permissions
@@ -18,7 +19,7 @@ class User(AbstractUser):
     def get_pfp_url(self):
         if self.pfp:
             return self.pfp.url
-        return "/media/pfps/defaultpfp.jpg"
+        return "/media/defaults/pfp.jpg"
     
     def __str__(self):
         return f'{self.full_name} ({self.pk})'
@@ -38,7 +39,7 @@ class Shop(models.Model):
     def get_logo_url(self):
         if self.logo:
             return self.logo.url
-        return "/media/logos/defaultlogo.jpg"
+        return "/media/defaults/logo.jpg"
     
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -102,6 +103,8 @@ class ManagerInvite(models.Model):
 class Category(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="categories")
     name = models.CharField(max_length=100)
+    color = models.CharField(max_length=20, choices=utils.CATEGORY_COLORS_CHOICES, default='blue')
+    
     
     def __str__(self):
         return f'{self.name} - {self.shop}'
@@ -110,7 +113,8 @@ class Category(models.Model):
         constraints = [models.UniqueConstraint(fields=['shop', 'name'], name="unique_shop_name_category")]
 
 
-    
+def image_upload_to(instance, filename):
+        return f"product_images/{instance.shop.id}/{filename}"
 
 class Product(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="products")
@@ -120,11 +124,19 @@ class Product(models.Model):
     stock_quantity = models.IntegerField()
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2)
     price_after_discount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    reorder_point = models.IntegerField(null=True, blank=True)
     
     is_deleted = models.BooleanField(default=False)
     marked_for_deletion_at = models.DateTimeField(null=True, blank=True)
     
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
+    
+    image = models.ImageField(upload_to=image_upload_to, null=True, blank=True)
+    
+    def get_image_url(self):
+        if self.image:
+            return self.image.url
+        return "/media/defaults/product.png"
     
     def soft_delete(self): # For syncing with offline POS terminal.
         self.is_deleted = True
@@ -154,7 +166,8 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         if not self.category:
-            self.category = Category.objects.get_or_create(shop=self, name="Uncategorized") # To create category
+            category, is_created = Category.objects.get_or_create(shop=self.shop, name="Uncategorized") # To create category
+            self.category = category
         self.price_after_discount = ((100-self.discount_percentage)/100)*self.price
         
         

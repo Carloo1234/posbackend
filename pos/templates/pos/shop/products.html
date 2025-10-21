@@ -1,10 +1,95 @@
 {% extends 'pos/shop/shop_base.html' %}
+{% load static %}
+
+{% block head %}
+    <script src="{% static 'pos/js/sidebar.js' %}" defer></script>
+    <script src="{% static 'pos/js/context_menus.js' %}" defer></script>
+{% endblock %}
 
 {% block content %}
-    <h2 class="text-text text-xl font-bold">Products:</h2>
-    <ul>
-        {% for product in product_list %}
-            <li class="text-text">- {{ product }}</li>
-        {% endfor %}
-    </ul>
+    <div class="flex justify-center items-center w-full p-10">
+        <div class="">
+            <h2 class="text-text text-xl font-bold mb-4">Products:</h2>
+            <table class="table-fixed w-full border-collapse overflow-scroll">
+                <thead class="text-secondary-text">
+                    <tr class="text-left border-b border-border h-10 bg-surface rounded-lg">
+                        <th class="pl-2 rounded-tl-md w-24 md:w-56 font-semibold">Product Name</th>
+                        <th class="w-24 md:w-32 font-semibold">Price</th>
+                        <th class="w-32 md:w-32 font-semibold">Category</th>
+                        <th class="w-12 md:w-16 font-semibold">Stock</th>
+                        <th class="rounded-tr-md w-12 md:w-16 font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in product_list %}
+                    <tr class="text-text border-b border-border cursor-pointer">
+                        
+                        <td class="pl-2 flex items-center gap-2 h-16">
+                            <div class="bg-white h-14 w-14 rounded-sm flex justify-center items-center">
+                                <img src="{{ product.get_image_url }}" class="h-14 rounded-sm object-contain" alt="Product image">
+                            </div>
+                            {{ product.name }}
+                        </td>
+                        <td>{{ shop.currency_code }} {{ product.price_after_discount }}</td>
+                        <td>{{ product.category.name }}</td>
+                        <td>{{ product.stock_quantity }}</td>
+                        <td class="text-center">
+                            <div class="relative">
+                                <button class="context-menu-btn h-8 w-8 cursor-pointer rounded-lg hover:bg-hover" data-product-id="{{ product.id }}">⋮</button>
+                                <div class="context-menu absolute top-full right-1/4 z-50" data-product-id="{{ product.id }}">
+                                    <div class="flex flex-col mt-1 w-32 rounded-lg shadow-lg bg-surface p-1 text-text">
+                                        <a class="flex gap-1 px-2 py-2 my-1 mx-1 hover:bg-hover text-text fill-text text-left rounded-lg cursor-pointer" href="{% url 'product_details' shop.slug product.pk %}">
+                                            <svg class="h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                                <path d="M280-280h200q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360H280q-17 0-28.5 11.5T240-320q0 17 11.5 28.5T280-280Zm400-400q-17 0-28.5 11.5T640-640v320q0 17 11.5 28.5T680-280q17 0 28.5-11.5T720-320v-320q0-17-11.5-28.5T680-680ZM280-440h200q17 0 28.5-11.5T520-480q0-17-11.5-28.5T480-520H280q-17 0-28.5 11.5T240-480q0 17 11.5 28.5T280-440Zm0-160h200q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680H280q-17 0-28.5 11.5T240-640q0 17 11.5 28.5T280-600ZM160-120q-33 0-56.5-23.5T80-200v-560q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v560q0 33-23.5 56.5T800-120H160Zm0-80h640v-560H160v560Zm0 0v-560 560Z"/>                                            </svg>
+                                            <span>Details</span>
+                                        </a>
+                                        <button class="flex gap-1 px-2 py-2 my-1 mx-1 hover:bg-hover text-text fill-text text-left rounded-lg cursor-pointer">
+                                            <svg class="h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                                <path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+                                            </svg>
+                                            <span>Edit</span>
+                                        </button>
+                                        <hr class="border-border">
+                                        <button class="flex gap-1 px-2 py-2 my-1 mx-1 hover:bg-danger-hover text-danger fill-danger text-left rounded-lg cursor-pointer">
+                                            <svg class="h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                                                <path d="M280-120q-33 0-56.5-23.5T200-200v-520q-17 0-28.5-11.5T160-760q0-17 11.5-28.5T200-800h160q0-17 11.5-28.5T400-840h160q17 0 28.5 11.5T600-800h160q17 0 28.5 11.5T800-760q0 17-11.5 28.5T760-720v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM400-280q17 0 28.5-11.5T440-320v-280q0-17-11.5-28.5T400-640q-17 0-28.5 11.5T360-600v280q0 17 11.5 28.5T400-280Zm160 0q17 0 28.5-11.5T600-320v-280q0-17-11.5-28.5T560-640q-17 0-28.5 11.5T520-600v280q0 17 11.5 28.5T560-280ZM280-720v520-520Z"/>                                            </svg>
+                                            <span>Delete</span>
+                                        </button>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+            <!-- Pagination section -->
+            <div class="text-text mt-4">
+                <span class="flex">
+                    {% if page_obj.has_previous and page_obj.previous_page_number != 1 %}
+                        <a href="?page=1" class="p-2 border border-border">1</a>
+                        <a href="?page={{ page_obj.previous_page_number }}" class="p-2 border border-border">&larr;</a>
+                    {% elif page_obj.has_previous and page_obj.previous_page_number == 1 %}
+                        <a href="?page=1" class="p-2 border border-border">1</a>
+                    {% endif %}
+
+                    <div class="p-2 border border-primary">{{ page_obj.number }}</div>
+
+                    {% if page_obj.has_next and page_obj.next_page_number != page_obj.paginator.num_pages %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="p-2 border border-border">&rarr;</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}" class="p-2 border border-border">{{ page_obj.paginator.num_pages }}</a>
+                    {% elif page_obj.has_next and page_obj.next_page_number == page_obj.paginator.num_pages %}
+                        <a href="?page={{ page_obj.paginator.num_pages }}" class="p-2 border border-border">{{ page_obj.paginator.num_pages }}</a>
+                    {% endif %}
+                </span>
+            </div>
+
+
+
+
+        </div>
+    </div>
 {% endblock %}

@@ -13,4 +13,6 @@ urlpatterns = [
     path('create_shop/', views.create_shop, name='create_shop'),
     path('shops/<str:slug>/dashboard/', views.DashboardView.as_view(), name='dashboard'),
     path('shops/<str:slug>/products/', views.ProductView.as_view(), name='products'),
+    path('shops/<str:slug>/product/<int:pk>/', views.ProductDetailView.as_view(), name='product_details'),
+    path('shops/<str:slug>/product/<int:pk>/barcode_download/', views.ProductBarcodeDownloadView.as_view(), name="download_barcode")
 ]

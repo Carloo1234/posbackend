@@ -1,6 +1,6 @@
 {% load static %}
 {% load permissions_extras %}
-<div id="sidebar" class="bg-surface h-dvh w-[250px] p-3 transition-all duration-300 border-r border-r-border">
+<div id="sidebar" class="bg-surface h-dvh w-[250px] p-3 transition-all duration-300 border-r border-r-border sticky top-0">
     <!-- Sidebar Header -->
     <div id="sidebar-header" class="mb-4 border-b border-b-border flex w-full justify-between items-center">
         <div id="shop-details" class="flex gap-2 p-2 rounded-md overflow-hidden">
@@ -44,7 +44,7 @@
             </a>
         </li>
         {% endif %}
-        {% if isOwner or shop_manager|has_permission:"can_manage_products" %}
+        {% if isOwner or shop_manager|has_permission:"can_view_products" %}
         <li>
             <a href="{% url 'products' shop.slug %}" class="sidebar-item flex items-center justify-start gap-1 hover:bg-hover cursor-pointer rounded-md h-10 pl-2
                 {% if active_page == 'products' %}
@@ -52,7 +52,7 @@
                 {% else %}
                 fill-secondary-text text-secondary-text
                 {% endif %}">
-                <svg class="fill-secondary-text h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                <svg class="h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
                     <path d="M440-183v-274L200-596v274l240 139Zm80 0 240-139v-274L520-457v274Zm-40-343 237-137-237-137-237 137 237 137ZM160-252q-19-11-29.5-29T120-321v-318q0-22 10.5-40t29.5-29l280-161q19-11 40-11t40 11l280 161q19 11 29.5 29t10.5 40v318q0 22-10.5 40T800-252L520-91q-19 11-40 11t-40-11L160-252Zm320-228Z"/>
                 </svg>
                 <div>

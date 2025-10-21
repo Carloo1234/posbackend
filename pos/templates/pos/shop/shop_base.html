@@ -4,9 +4,9 @@
     <script src="{% static 'pos/js/sidebar.js' %}" defer></script>
 {% endblock %}
 {% block body %}
-    <div class="flex">
+    <div class="flex h-dvh">
         {% include 'pos/shop/sidebar.html' %}
-        <main class="p-5">
+        <main class="p-5 w-full overflow-y-auto">
             {% block content %}
                 <span class="text-text">No content</span>
             {% endblock %}
