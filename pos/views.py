@@ -6,11 +6,12 @@ from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import AuthenticationForm
+from .forms import ProductForm
 from django.contrib.auth.decorators import login_required
 from .permissions import PERMISSION_LABELS, default_permissions
-from .models import ManagerInvite, Shop, ShopManager, Product
+from .models import ManagerInvite, Shop, ShopManager, Product, Category
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, ListView, DetailView, View
+from django.views.generic import TemplateView, ListView, DetailView, UpdateView, View
 from django.db.models import Sum
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, TruncYear
 from django.utils import timezone
@@ -244,9 +245,12 @@ class ProductView(ShopAccessMixin, ListView):
     template_name = "pos/shop/products.html"
     active_page = 'products' # For context
     required_perms = ['can_view_products']
-    paginate_by = 10
+    paginate_by = 50
     def get_queryset(self):
-        return Product.objects.filter(shop=self.shop)
+        products = Product.objects.filter(shop=self.shop)
+        for product in products:
+            product.hex_code = utils.CATEGORY_COLORS_MAPPING[product.category.color]
+        return products
     
     def get_breadcrumbs(self):
         base = super().get_breadcrumbs()
@@ -331,3 +335,40 @@ class ProductDetailView(ShopAccessMixin, DetailView):
 
         return product
         
+        
+class ProductUpdateView(ShopAccessMixin, UpdateView):
+    template_name = 'pos/shop/product_update.html'
+    model = Product
+    form_class = ProductForm
+    active_page = "products"
+    required_perms = ["can_edit_products"]
+    
+    def get_form(self, form_class=None):
+        form =  super().get_form(form_class)
+        form.fields["category"].queryset = Category.objects.filter(shop=self.shop)
+        return form
+    
+    def form_valid(self, form):
+        if self.request.POST.get('delete_image') == 'true':
+            if self.object.image:
+                self.object.image.delete(save=False)
+            self.object.image = None
+        return super().form_valid(form)
+        
+    def get_queryset(self):
+        return Product.objects.filter(shop=self.shop)
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["shop"] = self.shop
+        return kwargs
+    
+    def get_success_url(self):
+        return reverse("product_details", args=[self.shop.slug, self.object.pk])
+    
+    def get_breadcrumbs(self):
+        base = super().get_breadcrumbs()
+        base.extend([{"name": "Products", "url": reverse('products', args=[self.shop.slug])},
+                     {"name": self.object.name, "url": reverse("product_details", args=[self.shop.slug, self.object.pk])},
+                     {"name": "Edit", "url": None}])
+        return base

@@ -24,7 +24,7 @@
   :root,
   .white-theme {
     /* Backgrounds */
-    --color-background: #f9fafb;     /* A very light gray background */
+    --color-background: #FAFAFA;     /* A very light gray background */
     --color-surface: #ffffff;        /* Pure white for card-like elements */
     --color-secondary-surface: #E7E7E7;
 

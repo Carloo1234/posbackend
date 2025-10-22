@@ -147,7 +147,12 @@ class Product(models.Model):
         errors = {}
 
         if self.barcode and not is_valid_ean13(self.barcode):
-            errors['barcode'] = 'Invalid barcode check digit.'
+            errors['barcode'] = 'Incorrect barcode format. Invalid barcode check digit.'
+            
+        if self.barcode:
+            existing = Product.objects.filter(barcode=self.barcode, shop=self.shop).first()
+            if existing and existing.pk != self.pk:
+                errors['barcode'] = 'Barcode already exists.'
 
         if self.discount_percentage > 100:
             errors['discount_percentage'] = 'Discount percentage can\'t be bigger than 100%.'

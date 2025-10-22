@@ -10,7 +10,7 @@
     <div class="flex justify-center items-center w-full p-10">
         <div class="flex flex-col">
 
-            <table class="table-fixed w-full border-collapse overflow-scroll">
+            <table class="table-fixed w-full border-collapse overflow-scroll shadow-md">
                 <thead class="text-secondary-text">
                     <tr class="text-left border-b border-border h-10 bg-surface rounded-lg">
                         <th class="pl-2 rounded-tl-md w-24 md:w-56 font-semibold">Product Name</th>
@@ -20,7 +20,7 @@
                         <th class="rounded-tr-md w-12 md:w-16 font-semibold">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="bg-surface">
                     {% for product in product_list %}
                     <tr class="text-text border-b border-border cursor-pointer"
                      onclick="if (!event.target.closest('a, button')) window.location.href='{% url 'product_details' shop.slug product.pk %}'">
@@ -32,7 +32,9 @@
                             {{ product.name }}
                         </td>
                         <td>{{ shop.currency_code }} {{ product.price_after_discount }}</td>
-                        <td>{{ product.category.name }}</td>
+                        <td>
+                            <div style="background-color: {{ product.hex_code }};" class="w-fit px-1.5 py-0.5 rounded-2xl text-sm" >{{ product.category.name }}</div>
+                        </td>
                         <td>{{ product.stock_quantity }}</td>
                         <td class="text-center">
                             <div class="relative">
@@ -44,12 +46,12 @@
                                                 <path d="M280-280h200q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360H280q-17 0-28.5 11.5T240-320q0 17 11.5 28.5T280-280Zm400-400q-17 0-28.5 11.5T640-640v320q0 17 11.5 28.5T680-280q17 0 28.5-11.5T720-320v-320q0-17-11.5-28.5T680-680ZM280-440h200q17 0 28.5-11.5T520-480q0-17-11.5-28.5T480-520H280q-17 0-28.5 11.5T240-480q0 17 11.5 28.5T280-440Zm0-160h200q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680H280q-17 0-28.5 11.5T240-640q0 17 11.5 28.5T280-600ZM160-120q-33 0-56.5-23.5T80-200v-560q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v560q0 33-23.5 56.5T800-120H160Zm0-80h640v-560H160v560Zm0 0v-560 560Z"/>                                            </svg>
                                             <span>Details</span>
                                         </a>
-                                        <button class="flex gap-1 px-2 py-2 my-1 mx-1 hover:bg-hover text-text fill-text text-left rounded-lg cursor-pointer">
+                                        <a class="flex gap-1 px-2 py-2 my-1 mx-1 hover:bg-hover text-text fill-text text-left rounded-lg cursor-pointer" href="{% url 'product_update' shop.slug product.pk %}">
                                             <svg class="h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
                                                 <path d="M200-200h57l391-391-57-57-391 391v57Zm-40 80q-17 0-28.5-11.5T120-160v-97q0-16 6-30.5t17-25.5l505-504q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L313-143q-11 11-25.5 17t-30.5 6h-97Zm600-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
                                             </svg>
                                             <span>Edit</span>
-                                        </button>
+                                        </a>
                                         <hr class="border-border">
                                         <button class="flex gap-1 px-2 py-2 my-1 mx-1 hover:bg-danger-hover text-danger fill-danger text-left rounded-lg cursor-pointer">
                                             <svg class="h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
