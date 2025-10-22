@@ -9,8 +9,8 @@
             {% csrf_token %}
 
             <div class="flex flex-col gap-1">
-                <h2 class="text-xl font-semibold text-text mb-2">Edit Product</h2>
-                <span class="text-secondary-text text-sm mb-4">Update the product details below. Fields marked with * are required.</span>
+                <h2 class="text-xl font-semibold text-text mb-2">Create Product</h2>
+                <span class="text-secondary-text text-sm mb-4">Enter the product details below. Fields marked with * are required.</span>
             </div>
 
             <!-- Product Name -->
@@ -26,8 +26,8 @@
                 <label class="text-sm font-medium text-secondary-text">Product Image</label>
 
                 <!-- Preview box -->
-                <div id="image-preview" class="relative w-40 h-40 {% if not product.image %}hidden{% endif %}">
-                    <img src="{% if product.image %}{{ product.get_image_url }}{% endif %}" 
+                <div id="image-preview" class="relative w-40 h-40 hidden">
+                    <img src="" 
                         id="preview-img"
                         class="h-full w-full object-contain bg-white rounded-lg border border-border shadow-sm" alt="">
 
@@ -116,13 +116,13 @@
 
             <!-- Submit Buttons -->
             <div class="flex justify-end gap-3 mt-6">
-                <a href="{% url 'product_details' shop.slug product.id %}" 
+                <a href="{% url 'products' shop.slug %}" 
                 class="bg-surface border border-border text-text rounded-lg px-4 py-2 hover:bg-hover transition-colors">
                     Cancel
                 </a>
                 <button type="submit" 
-                        class="bg-primary text-white rounded-lg px-6 py-2 hover:bg-primary-dark transition-colors shadow-sm">
-                    Save Changes
+                        class="bg-primary hover:bg-primary-hover cursor-pointer text-white rounded-lg px-6 py-2 hover:bg-primary-dark transition-colors shadow-sm">
+                    Create Product
                 </button>
             </div>
         </form>

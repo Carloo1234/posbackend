@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from .permissions import PERMISSION_LABELS, default_permissions
 from .models import ManagerInvite, Shop, ShopManager, Product, Category
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, ListView, DetailView, UpdateView, View
+from django.views.generic import TemplateView, ListView, DetailView, UpdateView, CreateView, View
 from django.db.models import Sum
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, TruncYear
 from django.utils import timezone
@@ -371,4 +371,31 @@ class ProductUpdateView(ShopAccessMixin, UpdateView):
         base.extend([{"name": "Products", "url": reverse('products', args=[self.shop.slug])},
                      {"name": self.object.name, "url": reverse("product_details", args=[self.shop.slug, self.object.pk])},
                      {"name": "Edit", "url": None}])
+        return base
+    
+    
+class ProductCreateView(ShopAccessMixin, CreateView):
+    template_name = 'pos/shop/product_create.html'
+    active_page = 'products'
+    model = Product
+    form_class = ProductForm
+    required_perms = ['can_create_products']
+    
+    def get_success_url(self):
+        return reverse('product_details', args=[self.shop.slug, self.object.pk]) # Go to created product
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.instance.shop = self.shop
+        return form
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['shop'] = self.shop
+        return kwargs
+    
+    def get_breadcrumbs(self):
+        base = super().get_breadcrumbs()
+        base.extend([{"name": "Products", "url": reverse('products', args=[self.shop.slug])},
+                     {"name": "Create", "url": None}])
         return base
