@@ -388,6 +388,7 @@ class ProductCreateView(ShopAccessMixin, CreateView):
         form = super().get_form(form_class)
         form.instance.shop = self.shop
         return form
+
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
