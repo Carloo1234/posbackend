@@ -53,7 +53,7 @@
 
             <!-- INFO -->
             <div>
-                Barcode: {{ product.barcode }} - <a href="{% url 'download_barcode' product.shop.slug product.pk %}" class="text-blue-400">Download Image</a>
+                Barcode: {{ product.barcode }} - <a href="{% url 'download_barcode' shop.slug product.pk %}" class="text-blue-400">Download Image</a>
             </div>
             <span>Reorder point: {% if product.reorder_point == None %} Not set {% else %} {{ product.reorder_point }} {% endif %}</span>
 
@@ -66,7 +66,24 @@
 
             {% endif %}
             
-            <a href="{% url 'product_update' shop.slug product.pk %}" class="bg-primary text-primary-text font-medium hover:bg-primary-hover rounded-md px-10 py-2 w-fit mt-8 ">Edit</a>
+            <div class="flex justify-between">
+                <a href="{% url 'product_update' shop.slug product.pk %}" class="bg-primary text-primary-text font-medium hover:bg-primary-hover rounded-md px-10 py-2 w-fit mt-8 ">Edit</a>
+                <button id="delete-btn" class="bg-danger text-primary-text font-medium hover:bg-danger-hover cursor-pointer rounded-md px-10 py-2 w-fit mt-8 ">Delete</button>
+            </div>
+
+            <!-- Confirm Delete Dialog -->
+            <dialog id="confirm-dialog" class="bg-surface fixed inset-0 m-auto p-5 rounded-md shadow-md">
+                <form method="post" action="{% url 'product_delete' shop.slug product.pk %}" class="flex flex-col gap-4">
+                    {% csrf_token %}
+                    <span class="text-text font-medium text-lg">Are you sure you want to delete?</span>
+                    <div class="flex justify-end gap-2">
+                        <button id="cancel-btn" type="button" class="border-border border-1 rounded-md py-1 px-2 cursor-pointer hover:bg-hover text-text">Cancel</button>
+                        <button type="submit" class="bg-danger cursor-pointer text-white hover:bg-danger-hover rounded-md py-1 px-2">Delete</button>
+
+                    </div>
+                </form>
+            </dialog>
+
 
         </div>
     </div>
@@ -96,6 +113,23 @@
         {% endfor %}
     </div>
 </div>
-
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dialog = document.getElementById('confirm-dialog');
+        const delete_btn = document.getElementById('delete-btn');
+        const cancel_btn = document.getElementById('cancel-btn');
+        dialog.close();
+
+        delete_btn.addEventListener('click', () => {openConfirmDialog()})
+        cancel_btn.addEventListener("click", () => {closeConfirmDialog();})
+        function openConfirmDialog(){
+            dialog.showModal();
+        }
+
+        function closeConfirmDialog(){
+            dialog.close();
+        }
+    })
+</script>
 {% endblock %}

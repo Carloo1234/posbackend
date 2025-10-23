@@ -53,7 +53,7 @@
                                             <span>Edit</span>
                                         </a>
                                         <hr class="border-border">
-                                        <button class="flex gap-1 px-2 py-2 my-1 mx-1 hover:bg-danger-hover text-danger fill-danger text-left rounded-lg cursor-pointer">
+                                        <button data-product-id="{{ product.pk }}" class="delete-btn flex gap-1 px-2 py-2 my-1 mx-1 hover:bg-danger-hover text-danger fill-danger text-left rounded-lg cursor-pointer">
                                             <svg class="h-6 w-6 p-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
                                                 <path d="M280-120q-33 0-56.5-23.5T200-200v-520q-17 0-28.5-11.5T160-760q0-17 11.5-28.5T200-800h160q0-17 11.5-28.5T400-840h160q17 0 28.5 11.5T600-800h160q17 0 28.5 11.5T800-760q0 17-11.5 28.5T760-720v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM400-280q17 0 28.5-11.5T440-320v-280q0-17-11.5-28.5T400-640q-17 0-28.5 11.5T360-600v280q0 17 11.5 28.5T400-280Zm160 0q17 0 28.5-11.5T600-320v-280q0-17-11.5-28.5T560-640q-17 0-28.5 11.5T520-600v280q0 17 11.5 28.5T560-280ZM280-720v520-520Z"/>                                            </svg>
                                             <span>Delete</span>
@@ -67,6 +67,19 @@
                     {% endfor %}
                 </tbody>
             </table>
+
+            <!-- Confirm Delete Dialog -->
+            <dialog id="confirm-dialog" class="bg-surface fixed inset-0 m-auto p-5 rounded-md shadow-md">
+                <form method="post" action="" class="flex flex-col gap-4" id="confirm-form">
+                    {% csrf_token %}
+                    <span class="text-text font-medium text-lg">Are you sure you want to delete?</span>
+                    <div class="flex justify-end gap-2">
+                        <button id="cancel-btn" type="button" class="border-border border-1 rounded-md py-1 px-2 cursor-pointer hover:bg-hover text-text">Cancel</button>
+                        <button type="submit" class="bg-danger cursor-pointer text-white hover:bg-danger-hover rounded-md py-1 px-2">Delete</button>
+
+                    </div>
+                </form>
+            </dialog>
 
 
             <!-- Pagination section -->
@@ -95,4 +108,31 @@
 
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dialog = document.getElementById('confirm-dialog');
+            const form = document.getElementById('confirm-form');
+            const cancel_btn = document.getElementById('cancel-btn');
+            const delete_btn = document.querySelectorAll(".delete-btn");
+            dialog.close();
+
+            delete_btn.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    openConfirmDialog(btn);
+                })
+            })
+
+            cancel_btn.addEventListener("click", () => {closeConfirmDialog();})
+
+            function openConfirmDialog(btn){
+                form.action = `/shops/{{ shop.slug }}/product/${btn.dataset.productId}/delete/`;
+                dialog.showModal();
+            }
+
+            function closeConfirmDialog(){
+                dialog.close();
+            }
+        })
+    </script>
 {% endblock %}

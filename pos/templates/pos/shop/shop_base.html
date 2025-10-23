@@ -13,10 +13,30 @@
                 {% endblock %}
             </header>
             <div class="p-5">
+                {% if messages %}
+                <div class="fixed top-5 right-5 flex flex-col gap-2 z-50">
+                    {% for message in messages %}
+                    <div role="alert" class="px-4 py-2 rounded-md shadow-md 
+                                {% if message.tags == 'success' %}bg-green-500 text-white
+                                {% elif message.tags == 'error' %}bg-red-500 text-white
+                                {% else %}bg-gray-700 text-white{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 {% block content %}
                     <span class="text-text">No content</span>
                 {% endblock %}
             </div>
         </main>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            setTimeout(() => {
+                document.querySelectorAll('[role="alert"]').forEach(el => el.remove());
+            }, 3000);
+        })
+    </script>
 {% endblock %}

@@ -141,7 +141,7 @@ class Product(models.Model):
     def soft_delete(self): # For syncing with offline POS terminal.
         self.is_deleted = True
         self.marked_for_deletion_at = timezone.now()
-    
+        self.save(update_fields=['is_deleted', 'marked_for_deletion_at'])
     
     def clean(self):
         errors = {}

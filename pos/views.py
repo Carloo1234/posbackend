@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponse, Http404, FileResponse
+from django.http import HttpResponse, Http404, FileResponse, JsonResponse
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_http_methods
@@ -247,9 +247,9 @@ class ProductView(ShopAccessMixin, ListView):
     required_perms = ['can_view_products']
     paginate_by = 50
     def get_queryset(self):
-        products = Product.objects.filter(shop=self.shop)
+        products = Product.objects.filter(shop=self.shop, is_deleted=False)
         for product in products:
-            product.hex_code = utils.CATEGORY_COLORS_MAPPING[product.category.color]
+            product.hex_code = utils.CATEGORY_COLORS_MAPPING[product.category.color] # For context
         return products
     
     def get_breadcrumbs(self):
@@ -349,6 +349,7 @@ class ProductUpdateView(ShopAccessMixin, UpdateView):
         return form
     
     def form_valid(self, form):
+        messages.success(self.request, "Product updated successfully!")
         if self.request.POST.get('delete_image') == 'true':
             if self.object.image:
                 self.object.image.delete(save=False)
@@ -384,11 +385,16 @@ class ProductCreateView(ShopAccessMixin, CreateView):
     def get_success_url(self):
         return reverse('product_details', args=[self.shop.slug, self.object.pk]) # Go to created product
     
+    def form_valid(self, form):
+        messages.success(self.request, "Product created successfully!")
+        return super().form_valid(form)
+    
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.instance.shop = self.shop
         return form
 
+    
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -400,3 +406,13 @@ class ProductCreateView(ShopAccessMixin, CreateView):
         base.extend([{"name": "Products", "url": reverse('products', args=[self.shop.slug])},
                      {"name": "Create", "url": None}])
         return base
+    
+    
+class ProductDeleteView(ShopAccessMixin, View):
+    def post(self, request, *args, **kwargs):
+        pk = self.kwargs["pk"]
+        product = get_object_or_404(Product, pk=pk, shop=self.shop)
+        product.soft_delete()
+
+        messages.success(self.request, "Product deleted successfully!")
+        return redirect(reverse('products', args=[self.shop.slug]))
