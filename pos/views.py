@@ -12,7 +12,7 @@ from .permissions import PERMISSION_LABELS, default_permissions
 from .models import ManagerInvite, Shop, ShopManager, Product, Category
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, ListView, DetailView, UpdateView, CreateView, View
-from django.db.models import Sum
+from django.db.models import Sum, Q, F
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, TruncYear
 from django.utils import timezone
 from datetime import timedelta
@@ -248,8 +248,56 @@ class ProductView(ShopAccessMixin, ListView):
     paginate_by = 50
     def get_queryset(self):
         products = Product.objects.filter(shop=self.shop, is_deleted=False)
+            
+        # Search
+        search = self.request.GET.get("search")
+        if search:
+            products = products.filter(Q(name__icontains=search) | Q(barcode__icontains=search))
+            
+        
+        # Category
+        category = self.request.GET.get("category")
+        if category:
+            products = products.filter(category__name__iexact=category)
+        
+        # Stock Filter
+        stock = self.request.GET.get("stock")
+        if stock:
+            if stock.lower() == 'out':
+                products = products.filter(stock_quantity=0)
+            elif stock.lower() == 'low':
+                products = products.filter(stock_quantity__lte=F("reorder_point"), stock_quantity__gt=0)
+            elif stock.lower() == 'high':
+                products = products.filter(stock_quantity__gt=F("reorder_point"))
+                
+        
+        # Sorting
+        sort = self.request.GET.get("sort")
+        if sort == "price_asc":
+            products = products.order_by("price_after_discount")
+        elif sort == "price_desc":
+            products = products.order_by("-price_after_discount")
+        elif sort == "original_price_asc":
+            products = products.order_by("price")
+        elif sort == "original_price_desc":
+            products = products.order_by("-price")
+        elif sort == "discount_desc":
+            products = products.order_by("-discount_percentage")
+        elif sort == "stock_asc":
+            products = products.order_by("stock_quantity")
+        elif sort == "stock_desc":
+            products = products.order_by("-stock_quantity")
+        elif sort == "reorder_asc":
+            products = products.order_by("reorder_point")
+        elif sort == "reorder_desc":
+            products = products.order_by("-reorder_point")
+        
+        
+        
+        
         for product in products:
             product.hex_code = utils.CATEGORY_COLORS_MAPPING[product.category.color] # For context
+        
         return products
     
     def get_breadcrumbs(self):
