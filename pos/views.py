@@ -8,8 +8,9 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import ProductForm
 from django.contrib.auth.decorators import login_required
+from django.db.models import DecimalField
 from .permissions import PERMISSION_LABELS, default_permissions
-from .models import ManagerInvite, Shop, ShopManager, Product, Category
+from .models import ManagerInvite, Shop, ShopManager, Product, Category, ProductVariant, SaleProduct
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, ListView, DetailView, UpdateView, CreateView, View
 from django.db.models import Sum, Q, F
@@ -222,8 +223,8 @@ class ShopAccessMixin(LoginRequiredMixin):
         
 class ProductBarcodeDownloadView(ShopAccessMixin, View):
     def get(self, request, *args, **kwargs):
-        product_id = kwargs.get("pk")
-        product = get_object_or_404(Product, pk=product_id, shop=self.shop)
+        product_variant_id = kwargs.get("pk")
+        product = get_object_or_404(ProductVariant, pk=product_variant_id, product__shop=self.shop)
         
         barcode_class = barcode.get_barcode_class('code128')
         barcode_image = barcode_class(str(product.barcode), writer=ImageWriter())
@@ -245,52 +246,54 @@ class ProductView(ShopAccessMixin, ListView):
     template_name = "pos/shop/products.html"
     active_page = 'products' # For context
     required_perms = ['can_view_products']
+    context_object_name = "product_list"
     paginate_by = 50
     def get_queryset(self):
-        products = Product.objects.filter(shop=self.shop, is_deleted=False)
-            
-        # Search
-        search = self.request.GET.get("search")
-        if search:
-            products = products.filter(Q(name__icontains=search) | Q(barcode__icontains=search))
+        products = Product.objects.filter(shop=self.shop, product_variants__is_deleted=False).distinct()
+        print(products.first().pk)
+
+        # # Search
+        # search = self.request.GET.get("search")
+        # if search:
+        #     products = products.filter(Q(name__icontains=search) | Q(barcode__icontains=search))
             
         
-        # Category
-        category = self.request.GET.get("category")
-        if category:
-            products = products.filter(category__name__iexact=category)
+        # # Category
+        # category = self.request.GET.get("category")
+        # if category:
+        #     products = products.filter(category__name__iexact=category)
         
-        # Stock Filter
-        stock = self.request.GET.get("stock")
-        if stock:
-            if stock.lower() == 'out':
-                products = products.filter(stock_quantity=0)
-            elif stock.lower() == 'low':
-                products = products.filter(stock_quantity__lte=F("reorder_point"), stock_quantity__gt=0)
-            elif stock.lower() == 'high':
-                products = products.filter(stock_quantity__gt=F("reorder_point"))
+        # # Stock Filter
+        # stock = self.request.GET.get("stock")
+        # if stock:
+        #     if stock.lower() == 'out':
+        #         products = products.filter(stock_quantity=0)
+        #     elif stock.lower() == 'low':
+        #         products = products.filter(stock_quantity__lte=F("reorder_point"), stock_quantity__gt=0)
+        #     elif stock.lower() == 'high':
+        #         products = products.filter(stock_quantity__gt=F("reorder_point"))
                 
         
-        # Sorting
-        sort = self.request.GET.get("sort")
-        if sort == "price_asc":
-            products = products.order_by("price_after_discount")
-        elif sort == "price_desc":
-            products = products.order_by("-price_after_discount")
-        elif sort == "original_price_asc":
-            products = products.order_by("price")
-        elif sort == "original_price_desc":
-            products = products.order_by("-price")
-        elif sort == "discount_desc":
-            products = products.order_by("-discount_percentage")
-        elif sort == "stock_asc":
-            products = products.order_by("stock_quantity")
-        elif sort == "stock_desc":
-            products = products.order_by("-stock_quantity")
-        elif sort == "reorder_asc":
-            products = products.order_by("reorder_point")
-        elif sort == "reorder_desc":
-            products = products.order_by("-reorder_point")
+        # # Sorting
+        # sort = self.request.GET.get("sort")
+        # if sort == "price_asc":
+        #     products = products.order_by("price_after_discount")
+        # elif sort == "price_desc":
+        #     products = products.order_by("-price_after_discount")
+        # elif sort == "original_price_asc":
+        #     products = products.order_by("price")
+        # elif sort == "original_price_desc":
+        #     products = products.order_by("-price")
+        # elif sort == "discount_desc":
+        #     products = products.order_by("-discount_percentage")
+        # elif sort == "stock_asc":
+        #     products = products.order_by("stock_quantity")
+        # elif sort == "stock_desc":
+        #     products = products.order_by("-stock_quantity")
+        # elif sort == "reorder_asc":
+        #     products = products.order_by("reorder_point")
+        # elif sort == "reorder_desc":
+        #     products = products.order_by("-reorder_point")
         
         
         
@@ -325,13 +328,14 @@ class ProductDetailView(ShopAccessMixin, DetailView):
         self.product = super().get_object(queryset)
         product = self.product
 
-        # Normalize discount
-        product.discount_percentage = Decimal(product.discount_percentage).normalize()
+        # --- Normalize discounts for all variants ---
+        for variant in product.product_variants.filter(is_deleted=False):
+            variant.discount_percentage = Decimal(variant.discount_percentage).normalize()
 
-        # Attach hex color
-        product.category.hex_code = utils.CATEGORY_COLORS_MAPPING[product.category.color]
+        # --- Attach category hex code ---
+        product.category.hex_code = utils.CATEGORY_COLORS_MAPPING.get(product.category.color, "#000000")
 
-        # Reference current time once (for performance + clarity)
+        # --- Prepare time periods ---
         now = timezone.now()
         start_dates = {
             "year": now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0),
@@ -340,31 +344,34 @@ class ProductDetailView(ShopAccessMixin, DetailView):
             "day": now.replace(hour=0, minute=0, second=0, microsecond=0),
         }
 
-        # Aggregate all-time
+        # --- Base QuerySet: all sale products for this product's variants ---
+        sale_products_qs = SaleProduct.objects.filter(product__product=product)
+
+        # --- Aggregate all-time ---
         aggregates = {
-            "all_time": product.sale_products.aggregate(
+            "all_time": sale_products_qs.aggregate(
                 total_quantity=Sum("quantity"),
-                total_revenue=Sum("sub_total"),
+                total_revenue=Sum("sub_total", output_field=DecimalField()),
             )
         }
 
-        # Aggregate for each period
+        # --- Aggregate per period ---
         for period, start_date in start_dates.items():
-            aggregates[period] = product.sale_products.filter(
+            aggregates[period] = sale_products_qs.filter(
                 sale__created_at__gte=start_date
             ).aggregate(
                 total_quantity=Sum("quantity"),
-                total_revenue=Sum("sub_total"),
+                total_revenue=Sum("sub_total", output_field=DecimalField()),
             )
 
-        # Assign results to product
+        # --- Assign results to product for template use ---
         for period, data in aggregates.items():
             total_qty = data["total_quantity"] or 0
             total_rev = Decimal(data["total_revenue"] or 0).normalize()
             setattr(product, f"{period}_sales", total_qty)
             setattr(product, f"{period}_revenue", total_rev)
-            
-        
+
+        # --- Prepare lists for charts or templates ---
         product.sales_data = [
             ("All Time", product.all_time_sales),
             ("This Year", product.year_sales),
@@ -382,7 +389,7 @@ class ProductDetailView(ShopAccessMixin, DetailView):
         ]
 
         return product
-        
+            
         
 class ProductUpdateView(ShopAccessMixin, UpdateView):
     template_name = 'pos/shop/product_update.html'

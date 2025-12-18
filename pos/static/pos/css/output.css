@@ -661,6 +661,9 @@
   .bg-surface {
     background-color: var(--color-surface);
   }
+  .bg-transparent {
+    background-color: transparent;
+  }
   .bg-white {
     background-color: var(--color-white);
   }
@@ -1028,7 +1031,7 @@
 }
 @layer theme {
   :root, .white-theme {
-    --color-background: #FAFAFA;
+    --color-background: #F1F1F1;
     --color-surface: #ffffff;
     --color-secondary-surface: #E7E7E7;
     --color-text: #1f2937;
@@ -1036,7 +1039,7 @@
     --color-primary: #3b82f6;
     --color-primary-hover: #336dcc;
     --color-primary-text: #ffffff;
-    --color-hover: #F0F0F0;
+    --color-hover: #e6e3e3;
     --color-accent: #10b981;
     --color-border: #e2e8f0;
     --color-danger: #dc2626;

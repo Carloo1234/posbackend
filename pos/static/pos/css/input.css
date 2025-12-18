@@ -24,7 +24,7 @@
   :root,
   .white-theme {
     /* Backgrounds */
-    --color-background: #FAFAFA;     /* A very light gray background */
+    --color-background: #F1F1F1;     /* A very light gray background */
     --color-surface: #ffffff;        /* Pure white for card-like elements */
     --color-secondary-surface: #E7E7E7;
 
@@ -36,7 +36,7 @@
     --color-primary: #3b82f6;        /* A strong blue for buttons, etc. */
     --color-primary-hover: #336dcc;
     --color-primary-text: #ffffff;   /* White text on the primary color */
-    --color-hover: #F0F0F0;
+    --color-hover: #e6e3e3;
     --color-accent: #10b981;         /* A green for success messages or highlights */
     --color-border: #e2e8f0;
 

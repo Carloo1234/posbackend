@@ -114,11 +114,42 @@ class Category(models.Model):
 
 
 def image_upload_to(instance, filename):
-        return f"product_images/{instance.shop.id}/{filename}"
+        return f"product_images/{instance.product.shop.id}/{filename}"
+    
 
+    
 class Product(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=200)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
+    
+    def save(self, *args, **kwargs):
+        if not self.category:
+            category, is_created = Category.objects.get_or_create(shop=self.shop, name="Uncategorized") # To create category
+            self.category = category
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.name
+
+class ProductAttribute(models.Model): # Color, Size, etc..
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="product_attributes")
+    name = models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.name
+    
+class ProductAttributeValue(models.Model):
+    attribute = models.ForeignKey(ProductAttribute, on_delete=models.CASCADE, related_name="attribute_values")
+    name = models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.name
+
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_variants")
+    name = models.CharField(max_length=200, blank=True)
+    sku = models.CharField(max_length=50, blank=True, null=False)
     barcode = models.CharField(max_length=13)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock_quantity = models.IntegerField()
@@ -129,9 +160,10 @@ class Product(models.Model):
     is_deleted = models.BooleanField(default=False)
     marked_for_deletion_at = models.DateTimeField(null=True, blank=True)
     
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
     
     image = models.ImageField(upload_to=image_upload_to, null=True, blank=True)
+    
+    product_attribute_values = models.ManyToManyField(ProductAttributeValue, through="ProductVariantAttributeValue")
     
     def get_image_url(self):
         if self.image:
@@ -148,11 +180,15 @@ class Product(models.Model):
 
         if self.barcode and not is_valid_ean13(self.barcode):
             errors['barcode'] = 'Incorrect barcode format. Invalid barcode check digit.'
+                
+        if self.barcode and ProductVariant.objects.filter(barcode=self.barcode, product__shop=self.product.shop).exclude(pk=self.pk).exists():
+            errors['barcode'] = 'Barcode must be unique'        
+        
+        if ProductVariant.objects.filter(sku=self.sku, product__shop=self.product.shop).exclude(pk=self.pk).exists():
+            errors['sku'] = 'SKU must be unique.'
             
-        if self.barcode:
-            existing = Product.objects.filter(barcode=self.barcode, shop=self.shop).first()
-            if existing and existing.pk != self.pk:
-                errors['barcode'] = 'Barcode already exists.'
+        if self.sku == '':
+            errors['sku'] = 'SKU cannot be empty.'
 
         if self.discount_percentage > 100:
             errors['discount_percentage'] = 'Discount percentage can\'t be bigger than 100%.'
@@ -162,6 +198,7 @@ class Product(models.Model):
             
         if self.price < 0:
             errors['price'] = 'Price can\'t be smaller than 0.'
+            
 
         if errors:
             raise ValidationError(errors)
@@ -170,21 +207,26 @@ class Product(models.Model):
         
     def save(self, *args, **kwargs):
         self.full_clean()
-        if not self.category:
-            category, is_created = Category.objects.get_or_create(shop=self.shop, name="Uncategorized") # To create category
-            self.category = category
         self.price_after_discount = ((100-self.discount_percentage)/100)*self.price
         
         
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f'{self.name} - {self.shop.currency_code}{self.price_after_discount}'
+        return f'{self.name} - {self.product.shop.currency_code}{self.price_after_discount}'
         
+        
+        
+    
+class ProductVariantAttributeValue(models.Model): # Through Model
+    product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name="variant_attribute_values")
+    attribute_value = models.ForeignKey(ProductAttributeValue, on_delete=models.PROTECT)
+    
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['shop', 'barcode'], name='unique_shop_barcode_product')
-            ]
+            models.UniqueConstraint(fields=['product_variant', 'attribute_value'], name="unique_product_attribute")
+        ]
+        
         
 class Sale(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name='sales')
@@ -210,7 +252,7 @@ class Sale(models.Model):
     
 class SaleProduct(models.Model):
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='sale_products')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='sale_products')
+    product = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='sale_products')
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     sub_total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, default=0)

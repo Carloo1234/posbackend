@@ -1,135 +1,231 @@
-{% extends 'pos/shop/shop_base.html' %}
-{% load static %}
-
-{% block head %}
-    <script src="{% static 'pos/js/sidebar.js' %}" defer></script>
-{% endblock %}
-{% block content %}
-
-
-<div class="text-text flex flex-col p-10 h-full gap-4">
-
-
-    <div class="flex flex-col md:flex-row items-start gap-4">
-        <!-- Image -->
-        <div class="shrink-0">
-            <img src="{{ product.get_image_url }}" alt="" class="w-96 h-96 rounded-md shadow-sm object-contain bg-white">
-        </div>
-
-        <!-- Details -->
-        <div class="flex flex-col gap-2 bg-surface rounded-lg p-3 h-96 shadow-md">
-            <div class="flex flex-col gap-2">
-                <h1 class="font-bold text-2xl">{{ product.name }}</h1>
-                <div style="background-color: {{ product.category.hex_code }};" class="w-fit px-1.5 py-0.5 rounded-2xl text-sm" >{{ product.category.name }}</div>
-            </div>
-
-
-
-            <hr class="text-border"> 
-
-            <!-- Price -->
-            <div class="w-96">
-                {% if product.discount_percentage == 0 %}
-                <!-- No discount -->
-                    <div class="flex flex-col">
-                        <span class="text-xl">{{ product.shop.currency_code }} {{ product.price_after_discount }}</span>
-                        <span class="text-secondary-text">No discount on product.</span>
-                    </div>
-                {% else %}
-                <!-- Yes discount -->
-                    <div class="flex flex-col">
-                        <div class="flex gap-2">
-                            <span class="text-primary text-xl">-{{ product.discount_percentage }}%</span>
-                            <span class="text-xl">{{ product.shop.currency_code }} {{ product.price_after_discount }}</span>
-                        </div>
-                        <span class="text-secondary-text">was <strike>{{ product.shop.currency_code }}{{ product.price }}</strike></span>
-                    </div>
-                {% endif %}
-            </div>
-            <!-- Stock -->
-            <div>
-                <span>{{ product.stock_quantity }} items left in stock</span>
-            </div>
-
-            <!-- INFO -->
-            <div>
-                Barcode: {{ product.barcode }} - <a href="{% url 'download_barcode' shop.slug product.pk %}" class="text-blue-400">Download Image</a>
-            </div>
-            <span>Reorder point: {% if product.reorder_point == None %} Not set {% else %} {{ product.reorder_point }} {% endif %}</span>
-
-            <hr class="text-border">
-
-            <!-- Sale info -->
-            {% if product.reorder_point != None and product.stock_quantity <= product.reorder_point %}
-                <div title="The current stock level is below or equal to reorder level." class="w-fit px-1.5 py-0.5 rounded-2xl text-sm bg-red-600 cursor-default">Low Stock Alert</div>
-            {% else %}
-
-            {% endif %}
-            
-            <div class="flex justify-between">
-                <a href="{% url 'product_update' shop.slug product.pk %}" class="bg-primary text-primary-text font-medium hover:bg-primary-hover rounded-md px-10 py-2 w-fit mt-8 ">Edit</a>
-                <button id="delete-btn" class="bg-danger text-primary-text font-medium hover:bg-danger-hover cursor-pointer rounded-md px-10 py-2 w-fit mt-8 ">Delete</button>
-            </div>
-
-            <!-- Confirm Delete Dialog -->
-            <dialog id="confirm-dialog" class="bg-surface fixed inset-0 m-auto p-5 rounded-md shadow-md">
-                <form method="post" action="{% url 'product_delete' shop.slug product.pk %}" class="flex flex-col gap-4">
-                    {% csrf_token %}
-                    <span class="text-text font-medium text-lg">Are you sure you want to delete?</span>
-                    <div class="flex justify-end gap-2">
-                        <button id="cancel-btn" type="button" class="border-border border-1 rounded-md py-1 px-2 cursor-pointer hover:bg-hover text-text">Cancel</button>
-                        <button type="submit" class="bg-danger cursor-pointer text-white hover:bg-danger-hover rounded-md py-1 px-2">Delete</button>
-
-                    </div>
-                </form>
-            </dialog>
-
-
-        </div>
-    </div>
-   <div>
-    <span class="font-bold text-xl">Units Sold:</span>
-    <div class="flex flex-col md:flex-row gap-2 flex-wrap">
-        {% for label, value in product.sales_data %}
-            <div class="bg-surface shadow-md relative flex justify-center items-center p-5 rounded-2xl w-40 h-28">
-                <span class="absolute top-4 left-4 text-sm">{{ label }} Sales:</span>
-                <span class="text-xl font-bold">{{ value }}</span>
-            </div>
-        {% endfor %}
-    </div>
-</div>
-
-<div>
-    <span class="font-bold text-xl">Revenue:</span>
-    <div class="flex flex-col md:flex-row gap-2 flex-wrap">
-        {% for label, value in product.revenue_data %}
-            <div class="bg-surface shadow-md relative flex justify-center items-center p-5 rounded-2xl w-40 h-28">
-                <span class="absolute top-4 left-4 text-sm">{{ label }} Revenue:</span>
-                <div class="flex items-start font-bold text-xl">
-                    <span class="text-sm relative top-[3px]">{{ product.shop.currency_code }}</span>
-                    <span class="ml-1">{{ value }}</span>
+{% extends 'pos/shop/shop_base.html' %} {% load static %} {% block head %}
+<script src="{% static 'pos/js/sidebar.js' %}" defer></script>
+{% endblock %} {% block content %}
+<div class="text-text flex p-10 h-full">
+    <div class="flex flex-col">
+        <h2 class="text-lg font-bold">Varients:</h2>
+        {% for product_variant in product.product_variants.all %}
+        <button
+            class="select-btn flex gap-1 items-center p-2 rounded-md hover:bg-hover bg-transparent cursor-pointer"
+            data-id="{{ product_variant.pk }}"
+        >
+            <img class="w-8 h-8 object-contain bg-white" src="{{ product_variant.get_image_url }}" alt="img" />
+            <div class="flex flex-col items-start">
+                <span>{{ product.name }}</span>
+                <div class="text-sm text-secondary-text">
+                    {% for attribute in product_variant.product_attribute_values.all %}
+                    <span>{{ attribute }} </span>
+                    {% endfor %}
                 </div>
             </div>
+        </button>
         {% endfor %}
     </div>
-</div>
-</div>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const dialog = document.getElementById('confirm-dialog');
-        const delete_btn = document.getElementById('delete-btn');
-        const cancel_btn = document.getElementById('cancel-btn');
-        dialog.close();
-
-        delete_btn.addEventListener('click', () => {openConfirmDialog()})
-        cancel_btn.addEventListener("click", () => {closeConfirmDialog();})
-        function openConfirmDialog(){
-            dialog.showModal();
-        }
-
-        function closeConfirmDialog(){
+    <!-- Products -->
+    {% for product_variant in product.product_variants.all %}
+    <div class="main flex flex-col gap-4" data-id="{{ product_variant.pk}}">
+        <div class="flex flex-col md:flex-row items-start gap-4">
+            <!-- Image -->
+            <div class="shrink-0">
+                <img
+                    src="{{ product_variant.get_image_url }}"
+                    alt=""
+                    class="w-96 h-96 rounded-md shadow-sm object-contain bg-white"
+                />
+            </div>
+            <!-- Details -->
+            <div class="flex flex-col gap-2 bg-surface rounded-lg p-3 h-96 shadow-md">
+                <div class="flex flex-col gap-2">
+                    <h1 class="font-bold text-2xl">{{ product_variant.name }}</h1>
+                    <div
+                        style="background-color: {{ product_variant.category.hex_code }};"
+                        class="w-fit px-1.5 py-0.5 rounded-2xl text-sm"
+                    >
+                        {{ product.category.name }}
+                    </div>
+                </div>
+                <hr class="text-border" />
+                <!-- Price -->
+                <div class="w-96">
+                    {% if product_variant.discount_percentage == 0 %}
+                    <!-- No discount -->
+                    <div class="flex flex-col">
+                        <span class="text-xl"
+                            >{{ product.shop.currency_code }} {{ product_variant.price_after_discount }}</span
+                        >
+                        <span class="text-secondary-text">No discount on product.</span>
+                    </div>
+                    {% else %}
+                    <!-- Yes discount -->
+                    <div class="flex flex-col">
+                        <div class="flex gap-2">
+                            <span class="text-primary text-xl">-{{ product_variant.discount_percentage }}%</span>
+                            <span class="text-xl"
+                                >{{ product.shop.currency_code }} {{ product_variant.price_after_discount }}</span
+                            >
+                        </div>
+                        <span class="text-secondary-text"
+                            >was <strike>{{ product.shop.currency_code }}{{ product_variant.price }}</strike></span
+                        >
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Stock -->
+                <div>
+                    <span>{{ product_variant.stock_quantity }} items left in stock</span>
+                </div>
+                <!-- INFO -->
+                <div>
+                    Barcode: {{ product_variant.barcode }} -
+                    <a href="{% url 'download_barcode' shop.slug product_variant.pk %}" class="text-blue-400"
+                        >Download Image</a
+                    >
+                </div>
+                <span>Reorder point: {% if product_variant.reorder_point == None %} Not set {% else %} {{product_variant.reorder_point }} {% endif %}</span>
+                <hr class="text-border" />
+                <!-- Sale info -->
+                {% if product_variant.reorder_point != None and product_variant.stock_quantity <= product_variant.reorder_point %}
+                <div
+                    title="The current stock level is below or equal to reorder level."
+                    class="w-fit px-1.5 py-0.5 rounded-2xl text-sm bg-red-600 cursor-default"
+                >
+                    Low Stock Alert
+                </div>
+                {% endif %}
+                <div class="flex justify-between">
+                    <a
+                        href="{% url 'product_update' shop.slug product.pk %}"
+                        class="bg-primary text-primary-text font-medium hover:bg-primary-hover rounded-md px-10 py-2 w-fit mt-8"
+                        >Edit</a
+                    >
+                    <button
+                        id="delete-btn"
+                        class="bg-danger text-primary-text font-medium hover:bg-danger-hover cursor-pointer rounded-md px-10 py-2 w-fit mt-8"
+                    >
+                        Delete
+                    </button>
+                </div>
+                <!-- Confirm Delete Dialog -->
+                <dialog id="confirm-dialog" class="bg-surface fixed inset-0 m-auto p-5 rounded-md shadow-md">
+                    <form
+                        method="post"
+                        action="{% url 'product_delete' shop.slug product.pk %}"
+                        class="flex flex-col gap-4"
+                    >
+                        {% csrf_token %}
+                        <span class="text-text font-medium text-lg">Are you sure you want to delete?</span>
+                        <div class="flex justify-end gap-2">
+                            <button
+                                id="cancel-btn"
+                                type="button"
+                                class="border-border border-1 rounded-md py-1 px-2 cursor-pointer hover:bg-hover text-text"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                class="bg-danger cursor-pointer text-white hover:bg-danger-hover rounded-md py-1 px-2"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </form>
+                </dialog>
+            </div>
+        </div>
+        <div>
+            <span class="font-bold text-xl">Units Sold:</span>
+            <div class="flex flex-col md:flex-row gap-2 flex-wrap">
+                {% for label, value in product.sales_data %}
+                <div class="bg-surface shadow-md relative flex justify-center items-center p-5 rounded-2xl w-40 h-28">
+                    <span class="absolute top-4 left-4 text-sm">{{ label }} Sales:</span>
+                    <span class="text-xl font-bold">{{ value }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div>
+            <span class="font-bold text-xl">Revenue:</span>
+            <div class="flex flex-col md:flex-row gap-2 flex-wrap">
+                {% for label, value in product.revenue_data %}
+                <div class="bg-surface shadow-md relative flex justify-center items-center p-5 rounded-2xl w-40 h-28">
+                    <span class="absolute top-4 left-4 text-sm">{{ label }} Revenue:</span>
+                    <div class="flex items-start font-bold text-xl">
+                        <span class="text-sm relative top-[3px]">{{ product.shop.currency_code }}</span>
+                        <span class="ml-1">{{ value }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dialog = document.getElementById("confirm-dialog");
+            const delete_btn = document.getElementById("delete-btn");
+            const cancel_btn = document.getElementById("cancel-btn");
             dialog.close();
-        }
-    })
-</script>
+
+            delete_btn.addEventListener("click", () => {
+                openConfirmDialog();
+            });
+            cancel_btn.addEventListener("click", () => {
+                closeConfirmDialog();
+            });
+            function openConfirmDialog() {
+                dialog.showModal();
+            }
+
+            function closeConfirmDialog() {
+                dialog.close();
+            }
+
+            // Variant selection
+            const selection_btns = document.querySelectorAll(".select-btn");
+            const main_variants = document.querySelectorAll(".main");
+
+            const active_btn_classes = ["bg-surface"];
+            const inactive_btn_classes = ["bg-transparent"];
+            const active_main_classes = ["flex"];
+            const inactive_main_classes = ["hidden"];
+
+            function reset_state() {
+                selection_btns.forEach((btn) => {
+                    btn.classList.remove(...active_btn_classes);
+                    btn.classList.add(...inactive_btn_classes);
+                });
+
+                main_variants.forEach((main) => {
+                    main.classList.remove(...active_main_classes);
+                    main.classList.add(...inactive_main_classes);
+                });
+            }
+
+            function select(id) {
+                reset_state();
+                selection_btns.forEach((btn) => {
+                    if (btn.dataset.id === id) {
+                        btn.classList.remove(...inactive_btn_classes);
+                        btn.classList.add(...active_btn_classes);
+                    }
+                });
+
+                main_variants.forEach((main) => {
+                    if (main.dataset.id === id) {
+                        main.classList.remove(...inactive_main_classes);
+                        main.classList.add(...active_main_classes);
+                    }
+                });
+            }
+
+            reset_state();
+            // On btn click, select that.
+            selection_btns.forEach((btn) => {
+                btn.addEventListener("click", () => select(btn.dataset.id));
+            });
+            select(selection_btns[0].dataset.id);
+        });
+    </script>
+</div>
 {% endblock %}

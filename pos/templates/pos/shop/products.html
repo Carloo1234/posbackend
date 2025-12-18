@@ -27,7 +27,9 @@
                         
                         <td class="pl-2 flex items-center gap-2 h-16">
                             <div class="bg-white h-14 w-14 rounded-sm flex justify-center items-center">
-                                <img src="{{ product.get_image_url }}" class="h-14 rounded-sm object-contain" alt="Product image">
+                                {% with first_variant=product.product_variants.first %}
+                                    <img src="{{ first_variant.get_image_url }}" class="h-14 rounded-sm object-contain" alt="Product image">
+                                {% endwith %}
                             </div>
                             {{ product.name }}
                         </td>
