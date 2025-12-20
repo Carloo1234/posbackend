@@ -1,68 +1,68 @@
-{% extends 'pos/home/home_base.html' %}
-{% load dict_extras %}
+    {% extends 'pos/home/home_base.html' %}
+    {% load dict_extras %}
 
-{% block content %}
-    <div class="w-full">
-        {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
-            {% if message.tags == 'error' %}
-                <div class="bg-red-300 w-full text-primary-text">
-            {% elif message.tags == 'info' %}
-                <div class="bg-blue-300 w-full text-primary-text">
-            {% elif message.tags == 'success' %}
-                <div class="bg-green-300 w-full text-primary-text">
-            {% else %}
-                <div class="bg-gray-300 w-full text-primary-text">
-            {% endif %}
-            {{ message }}
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-    </div>
-    <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {% for invite in invites %}
-            <div class="bg-surface border-2 border-border p-4 rounded-lg shadow-sm flex flex-col justify-between gap-5 items-center">
-                <div class="flex w-full justify-start items-start gap-5">
-                    <img src="{{ invite.shop.get_logo_url }}" alt="Shop logo" class="h-20 w-20 rounded-full">
-                    <div class="flex flex-col">
-                        <span class="text-text font-semibold text-xl">{{ invite.shop.name }}</span>
-                        <div class="text-secondary-text text-sm flex flex-col">
-                            <span>Sent by: {{ invite.sent_by.username }}</span>
-                            <span>Permissions granted:- </span>
-                            <ul>
-                                {% for key, label in permission_labels.items %}
-                                <li>
-                                    {% if invite.permissions|dict_get:key %}
-                                        - {{ label }}
-                                    {% endif %}
-                                </li>
-                                {% endfor %}
-                            </ul>
+    {% block content %}
+        <div class="w-full">
+            {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {% if message.tags == 'error' %}
+                    <div class="bg-red-300 w-full text-primary-text">
+                {% elif message.tags == 'info' %}
+                    <div class="bg-blue-300 w-full text-primary-text">
+                {% elif message.tags == 'success' %}
+                    <div class="bg-green-300 w-full text-primary-text">
+                {% else %}
+                    <div class="bg-gray-300 w-full text-primary-text">
+                {% endif %}
+                {{ message }}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        </div>
+        <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for invite in invites %}
+                <div class="bg-surface border-2 border-border p-4 rounded-lg shadow-sm flex flex-col justify-between gap-5 items-center">
+                    <div class="flex w-full justify-start items-start gap-5">
+                        <img src="{{ invite.shop.get_logo_url }}" alt="Shop logo" class="h-20 w-20 rounded-full">
+                        <div class="flex flex-col">
+                            <span class="text-text font-semibold text-xl">{{ invite.shop.name }}</span>
+                            <div class="text-secondary-text text-sm flex flex-col">
+                                <span>Sent by: {{ invite.sent_by.username }}</span>
+                                <span>Permissions granted:- </span>
+                                <ul>
+                                    {% for key, label in permission_labels.items %}
+                                    <li>
+                                        {% if invite.permissions|dict_get:key %}
+                                            - {{ label }}
+                                        {% endif %}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="flex w-full gap-5">
-                    <!-- Accept -->
-                    <form method="post" class="grow">
-                        {% csrf_token %}
-                        <input type="hidden" name="invite_id" value="{{ invite.id }}">
-                        <input type="hidden" name="action" value="accept">
-                        <button type="submit" class="w-full bg-primary text-primary-text hover:bg-primary-hover rounded-md cursor-pointer font-semibold py-2 px-5">Accept</button>
-                    </form>
+                    <div class="flex w-full gap-5">
+                        <!-- Accept -->
+                        <form method="post" class="grow">
+                            {% csrf_token %}
+                            <input type="hidden" name="invite_id" value="{{ invite.id }}">
+                            <input type="hidden" name="action" value="accept">
+                            <button type="submit" class="w-full bg-primary text-primary-text hover:bg-primary-hover rounded-md cursor-pointer font-semibold py-2 px-5">Accept</button>
+                        </form>
 
-                    <!-- Decline -->
-                     <form method="post" class="grow">
-                        {% csrf_token %}
-                        <input type="hidden" name="invite_id" value="{{ invite.id }}">
-                        <input type="hidden" name="action" value="decline">
-                        <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-primary-text rounded-md cursor-pointer font-semibold py-2 px-5">Decline</button>
-                    </form>
+                        <!-- Decline -->
+                        <form method="post" class="grow">
+                            {% csrf_token %}
+                            <input type="hidden" name="invite_id" value="{{ invite.id }}">
+                            <input type="hidden" name="action" value="decline">
+                            <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-primary-text rounded-md cursor-pointer font-semibold py-2 px-5">Decline</button>
+                        </form>
+                    </div>
                 </div>
-            </div>
-        {% endfor %}
-    </div>
-{% endblock %}
+            {% endfor %}
+        </div>
+    {% endblock %}

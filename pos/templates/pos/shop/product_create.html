@@ -2,219 +2,35 @@
 {% load static %}
 {% load form_tags %}
 
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" integrity="sha384-/TgkGk7p307TH7EXJDuUlgG3Ce1UVolAOFopFekQkkXihi5u/6OCvVKyz1W+idaz" crossorigin="anonymous"></script>
+<script src="{% static 'pos/js/product_forms.js' %}" defer></script>
+{% endblock %}
 {% block content %}
-    <div class="text-text">
-        <form method="post" enctype="multipart/form-data" 
-            class="flex flex-col gap-6 max-w-2xl mx-auto bg-card p-6 rounded-2xl shadow-md border border-border">
-            {% csrf_token %}
-
-            <div class="flex flex-col gap-1">
-                <h2 class="text-xl font-semibold text-text mb-2">Create Product</h2>
-                <span class="text-secondary-text text-sm mb-4">Enter the product details below. Fields marked with * are required.</span>
-            </div>
-
-            <!-- Product Name -->
-            <div class="flex flex-col gap-1">
-                <label for="{{ form.name.id_for_label }}" class="text-sm font-medium text-secondary-text">
-                    Product Name *
+<div class="flex flex-col text-text items-center">
+    <h1 class="header">New Product</h1>
+    <form action="" method="post" enctype="multipart/form-data" class="main-form w-72 md:w-[600px] flex flex-col">
+        {% csrf_token %}
+        {% for field in product_form %}
+            <div class="flex flex-col gap-1 mb-4">
+                <label class="text-sm text-secondary-text">
+                    {{ field.label }}
                 </label>
-                {{ form.name|add_class:"bg-surface text-text border border-border rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary transition-all" }}
+                {{ field }}
+                {% if field.errors %}
+                    <p class="text-red-500 text-sm">{{ field.errors }}</p>
+                {% endif %}
             </div>
+        {% endfor %}
+        <div id="variant-forms">
+            {{ variant_formset.management_form }}
+            {% for form in variant_formset %}
+                {% include "pos/shop/partials/variant_form.html" %}
+            {% endfor %}
+        </div>
+        <button class="normal-btn w-32" hx-get="{% url 'get_variant_snippet' shop.slug %}" hx-target="#variant-forms" hx-swap="beforeend">Add Variant</button>
 
-            <!-- Product Image -->
-            <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-secondary-text">Product Image</label>
-                
-                <!-- Preview box -->
-                <div id="image-preview" class="relative w-40 h-40 hidden">
-                    <img src="" 
-                        id="preview-img"
-                        class="h-full w-full object-contain bg-white rounded-lg border border-border shadow-sm" alt="">
-                    <input type="hidden" name="delete_image" id="delete_image" value="false">
-
-                    <button type="button" id="delete-image-btn"
-                            class="absolute top-2 right-2 bg-danger/75 hover:bg-danger cursor-pointer text-white rounded-full h-6 w-6 flex items-center justify-center shadow-md transition">
-                        <svg class="h-6 w-6 p-1 fill-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                            <path d="M480-424 364-308q-11 11-28 11t-28-11q-11-11-11-28t11-28l116-116-116-115q-11-11-11-28t11-28q11-11 28-11t28 11l116 116 115-116q11-11 28-11t28 11q12 12 12 28.5T651-595L535-480l116 116q11 11 11 28t-11 28q-12 12-28.5 12T595-308L480-424Z"/>
-                        </svg>
-                        </button>
-                </div>
-
-                <!-- Upload box -->
-                <label for="id_image" id="upload-box"
-                        class="flex flex-col justify-center items-center gap-2 border-2 border-dashed border-border bg-surface hover:border-primary cursor-pointer transition rounded-lg w-40 h-40 {% if product.image %}hidden{% endif %}">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-secondary-text">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-9-13.5v15m0 0l-3-3m3 3l3-3" />
-                    </svg>
-                    <span class="text-sm text-secondary-text">Select Image</span>
-                </label>
-
-                <!-- Hidden Django input -->
-                <div class="hidden">
-                    {{ form.image|add_class:"hidden" }}
-                </div>
-                </div>
-
-
-            <!-- Category -->
-            <div class="flex flex-col gap-1">
-                <label for="{{ form.category.id_for_label }}" class="text-sm font-medium text-secondary-text">
-                    Category *
-                </label>
-                {{ form.category|add_class:"bg-surface text-text border border-border rounded-lg p-2 hover:border-primary transition-colors cursor-pointer" }}
-            </div>
-
-
-            <!-- Barcode -->
-            <div>
-                <label class="text-sm font-medium text-secondary-text">Barcode *</label>
-                {{ form.barcode|add_class:"bg-surface border border-border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-primary" }}
-            </div>
-
-
-            <!-- Price -->
-            <div class="flex flex-col gap-1">
-                <label for="{{ form.price.id_for_label }}" class="text-sm font-medium text-secondary-text">
-                    Price *
-                </label>
-                {{ form.price|add_class:"bg-surface text-text border border-border rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary transition-all" }}
-            </div>
-
-            <!-- Discount -->
-            <div class="flex flex-col gap-1">
-                <label for="{{ form.discount_percentage.id_for_label }}" class="text-sm font-medium text-secondary-text">
-                    Discount (%) *
-                </label>
-                <div class="relative">
-                    {{ form.discount_percentage|add_class:"bg-surface text-text border border-border rounded-lg p-2 pr-8 focus:border-primary focus:ring-1 focus:ring-primary transition-all" }}
-                    <span class="absolute right-3 top-2 text-secondary-text text-sm">%</span>
-                </div>
-            </div>
-
-            <!-- Stock Quantity -->
-            <div class="flex flex-col gap-1">
-                <label for="{{ form.stock_quantity.id_for_label }}" class="text-sm font-medium text-secondary-text">
-                    Stock Quantity *
-                </label>
-                {{ form.stock_quantity|add_class:"bg-surface text-text border border-border rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary transition-all" }}
-            </div>
-
-            <!-- Reorder Point -->
-            <div class="flex flex-col gap-1">
-                <label for="{{ form.reorder_point.id_for_label }}" class="text-sm font-medium text-secondary-text">
-                    Reorder Point
-                </label>
-                {{ form.reorder_point|add_class:"bg-surface text-text border border-border rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary transition-all" }}
-            </div>
-
-            {% if form.errors %}
-            <div class="text-red-500 text-sm mt-2">
-                {{ form.errors }}
-            </div>
-            {% endif %}
-
-            <!-- Submit Buttons -->
-            <div class="flex justify-end gap-3 mt-6">
-                <a href="{% url 'products' shop.slug %}" 
-                class="bg-surface border border-border text-text font-medium rounded-lg px-4 py-2 hover:bg-hover transition-colors">
-                    Cancel
-                </a>
-                <button type="submit" 
-                        class="bg-primary hover:bg-primary-hover cursor-pointer font-medium text-white rounded-lg px-6 py-2 hover:bg-primary-dark transition-colors shadow-sm">
-                    Create Product
-                </button>
-            </div>
-        </form>
-
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('id_image');
-            const previewBox = document.getElementById('image-preview');
-            const uploadBox = document.getElementById('upload-box');
-            const previewImg = document.getElementById('preview-img');
-            const deleteBtn = document.getElementById('delete-image-btn');
-            const hiddenDeleteInput = document.getElementById('delete_image');
-            const hiddenExistingImage = document.getElementById('delete_image');
-
-            uploadBox.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadBox.classList.add('border-primary');
-            })
-
-            uploadBox.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                uploadBox.classList.remove('border-primary');
-            })
-
-            uploadBox.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadBox.classList.remove('border-primary');
-                const file = e.dataTransfer.files[0];
-                if (!file) return;
-
-                fileInput.files = e.dataTransfer.files;
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = event => {
-                    previewImg.src = event.target.result;
-                    previewBox.classList.remove('hidden');
-                    uploadBox.classList.add('hidden');
-                    hiddenDeleteInput.value = 'false';
-                }
-
-            })
-
-            document.addEventListener("paste", (e) => {
-                const items = e.clipboardData.items;
-                for (let i = 0; i < items.length; i++) {
-                    if (items[i].type.startsWith("image/")) {
-                        const file = items[i].getAsFile();
-                        const dt = new DataTransfer();     // make a FileList container
-                        dt.items.add(file);
-                        fileInput.files = dt.files;
-
-                        const reader = new FileReader();
-                        reader.onload = e => {
-                            previewImg.src = e.target.result;
-                            previewBox.classList.remove("hidden");
-                            uploadBox.classList.add("hidden");
-                            hiddenDeleteInput.value = 'false';
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                }
-            });
-
-            // When a new image is selected
-            fileInput.addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = e => {
-                    previewImg.src = e.target.result;
-                    previewBox.classList.remove('hidden');
-                    uploadBox.classList.add('hidden');
-                    hiddenDeleteInput.value = 'false';
-                };
-                reader.readAsDataURL(file);
-            });
-
-            // When delete button is clicked
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', () => {
-                    fileInput.value = '';
-                    previewBox.classList.add('hidden');
-                    uploadBox.classList.remove('hidden');
-                    previewImg.src = '';
-
-                    hiddenDeleteInput.value = 'true';
-                });
-            }
-        });
-        </script>
-
-
-
-    </div>
+        <button type="submit" class="submit-btn normal-btn w-32 self-end">Add Product</button>
+    </form>
+</div>
 {% endblock %}

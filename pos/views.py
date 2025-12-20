@@ -6,7 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import ProductForm
+from .forms import ProductForm, ProductVariantForm, ProductVariantFormSet
 from django.contrib.auth.decorators import login_required
 from django.db.models import DecimalField
 from .permissions import PERMISSION_LABELS, default_permissions
@@ -14,7 +14,7 @@ from .models import ManagerInvite, Shop, ShopManager, Product, Category, Product
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, ListView, DetailView, UpdateView, CreateView, View
 from django.db.models import Sum, Q, F
-from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, TruncYear
+from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
@@ -56,6 +56,7 @@ class Login(LoginView):
 class Logout(LogoutView):
     template_name='pos/auth/logout.html'
     
+
 
 
 @login_required
@@ -220,6 +221,12 @@ class ShopAccessMixin(LoginRequiredMixin):
             'breadcrumbs': self.get_breadcrumbs()
         })
         return context
+    
+
+class GetVariantSnippetView(ShopAccessMixin, View):
+    def get(self, request, *args, **kwargs):
+        form = ProductVariantForm()
+        return render(request, "pos/shop/partials/variant_form.html", {"form": form})
         
 class ProductBarcodeDownloadView(ShopAccessMixin, View):
     def get(self, request, *args, **kwargs):
@@ -430,7 +437,7 @@ class ProductUpdateView(ShopAccessMixin, UpdateView):
         return base
     
     
-class ProductCreateView(ShopAccessMixin, CreateView):
+class ProductCreateView(ShopAccessMixin, TemplateView):
     template_name = 'pos/shop/product_create.html'
     active_page = 'products'
     model = Product
@@ -440,22 +447,45 @@ class ProductCreateView(ShopAccessMixin, CreateView):
     def get_success_url(self):
         return reverse('product_details', args=[self.shop.slug, self.object.pk]) # Go to created product
     
-    def form_valid(self, form):
-        messages.success(self.request, "Product created successfully!")
-        return super().form_valid(form)
-    
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.instance.shop = self.shop
-        return form
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        form = self.form_class(shop=self.shop)
+        context["product_form"] = form
+        context["variant_formset"] = ProductVariantFormSet()
+        return context
 
-    
-    
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['shop'] = self.shop
-        return kwargs
-    
+    def post(self, request, *args, **kwargs):
+        product_form = ProductForm(request.POST, shop=self.shop)
+        variant_formset = ProductVariantFormSet(request.POST, request.FILES)
+
+        if product_form.is_valid():
+            # Create product object but don't save yet.
+            product = product_form.save(commit=False)
+            # We need to asign shop before checking if formset is valid cuz it will give error variant.product has no shop.
+            product.shop = self.shop             
+            variant_formset.instance = product
+            if variant_formset.is_valid():
+                with transaction.atomic():
+                    product.save()
+                    variant_formset.save()
+                messages.success(request, "Product created with variants")
+                return redirect("product_details", self.shop.slug, product.pk)
+        context = self.get_context_data(**kwargs)
+        context.update({"product_form": product_form, "variant_formset": variant_formset})
+        return render( request, self.template_name, context)
+            
+        if product_form.is_valid() and variant_formset.is_valid():
+            with transaction.atomic():
+                product = product_form.save()
+                
+                variant_formset.instance = product
+                variant_formset.save()
+
+            messages.success(request, "Product created with variants")
+            return redirect("product_details", self.shop.slug, product.pk)
+        return render(request, self.template_name, {"product_form": product_form, "variant_formset": variant_formset})
+        
     def get_breadcrumbs(self):
         base = super().get_breadcrumbs()
         base.extend([{"name": "Products", "url": reverse('products', args=[self.shop.slug])},

@@ -1,0 +1,48 @@
+<div class="variant-form bg-surface border border-border p-4 mb-2 rounded-lg">
+{% for field in form %}
+{% if not field.is_hidden %}
+    <div class="flex flex-col gap-1 mb-4">
+        <label class="text-sm text-secondary-text">
+            {{ field.label }}
+        </label>
+        {% if field.name == "image" %}
+        <div class="image-upload flex flex-col gap-2">
+
+            <!-- For Django -->
+            <input type="file" name="image" class="image-input hidden" id="product_variants-{% if index %}{{index}}{% else %}{{ forloop.parentloop.counter0 }}{% endif %}-image">
+            <input type="hidden" name="delete_image" class="delete-image-flag" value="false">
+            
+            <!-- Preview box -->
+            <div class="preview-box relative w-40 h-40 hidden">
+                <img class="preview-img h-full w-full object-contain bg-white rounded-lg border border-border shadow-sm">
+
+                <button type="button"
+                        class="delete-image-btn absolute top-2 right-2 bg-danger/75 hover:bg-danger cursor-pointer text-white rounded-full h-6 w-6 flex items-center justify-center shadow-md transition">
+                    <svg class="h-6 w-6 p-1 fill-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                        <path d="M480-424 364-308q-11 11-28 11t-28-11q-11-11-11-28t11-28l116-116-116-115q-11-11-11-28t11-28q11-11 28-11t28 11l116 116 115-116q11-11 28-11t28 11q12 12 12 28.5T651-595L535-480l116 116q11 11 11 28t-11 28q-12 12-28.5 12T595-308L480-424Z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Upload box -->
+            <label for="product_variants-{{ forloop.parentloop.counter0 }}-image"
+                    class="upload-box flex flex-col justify-center items-center gap-2 border-2 border-dashed border-border bg-surface hover:border-primary cursor-pointer transition rounded-lg w-40 h-40 {% if product.image %}hidden{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-secondary-text">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-9-13.5v15m0 0l-3-3m3 3l3-3" />
+                </svg>
+                <span class="text-sm text-secondary-text">Select Image</span>
+            </label>
+
+        </div>
+        {% else %}
+        {{ field }}
+        {% endif %}
+
+        {% if field.errors %}
+            <p class="text-red-500 text-sm">{{ field.errors }}</p>
+        {% endif %}
+    </div>
+{% endif %}
+{% endfor %}
+    <button type="button" class="delete-variant-btn danger-btn">Delete</button>
+</div>

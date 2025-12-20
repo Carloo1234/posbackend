@@ -17,6 +17,7 @@
 
 }
 
+
 @layer theme {
 
   /* The "white-theme" is our default. These values will be used unless a different theme class is applied.
@@ -98,4 +99,26 @@
     --color-danger: #dc2626;           /* spicy red */
     --color-danger-hover: #ef4444;     /* brighter hover red */
   }
+}
+
+.form-input {
+    @apply bg-surface text-text border border-border rounded-lg px-3 py-2
+           focus:outline-none focus:ring-2 focus:ring-primary;
+}
+
+.form-select {
+    @apply bg-surface text-text border border-border rounded-lg px-3 py-2
+           focus:outline-none focus:ring-2 focus:ring-primary;
+}
+
+.normal-btn {
+    @apply bg-primary text-primary-text hover:bg-primary-hover cursor-pointer px-4 py-1.5 rounded-lg shadow-md;
+}
+
+.danger-btn {
+     @apply bg-danger text-white fill-white hover:bg-danger-hover rounded-lg px-2 py-1 shadow-md cursor-pointer;
+}
+
+.header {
+    @apply text-2xl text-text font-bold;
 }

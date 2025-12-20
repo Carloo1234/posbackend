@@ -6,6 +6,7 @@ from . import utils
 from django.utils import timezone
 from django.utils.text import slugify
 from .permissions import PERMISSION_LABELS, default_permissions
+from decimal import Decimal
 
 # Create your models here.
 
@@ -107,7 +108,7 @@ class Category(models.Model):
     
     
     def __str__(self):
-        return f'{self.name} - {self.shop}'
+        return f'{self.name}'
     
     class Meta:
         constraints = [models.UniqueConstraint(fields=['shop', 'name'], name="unique_shop_name_category")]
@@ -189,12 +190,14 @@ class ProductVariant(models.Model):
             
         if self.sku == '':
             errors['sku'] = 'SKU cannot be empty.'
+        if self.discount_percentage:
+            if self.discount_percentage > 100:
+                errors['discount_percentage'] = 'Discount percentage can\'t be bigger than 100%.'
 
-        if self.discount_percentage > 100:
-            errors['discount_percentage'] = 'Discount percentage can\'t be bigger than 100%.'
-
-        if self.discount_percentage < 0:
-            errors['discount_percentage'] = 'Discount percentage can\'t be smaller than 0%.'
+            if self.discount_percentage < 0:
+                errors['discount_percentage'] = 'Discount percentage can\'t be smaller than 0%.'
+        else:
+            self.discount_percentage = 0
             
         if self.price < 0:
             errors['price'] = 'Price can\'t be smaller than 0.'
@@ -207,7 +210,8 @@ class ProductVariant(models.Model):
         
     def save(self, *args, **kwargs):
         self.full_clean()
-        self.price_after_discount = ((100-self.discount_percentage)/100)*self.price
+        self.price_after_discount = self.price * (Decimal("100") - self.discount_percentage) / Decimal("100")
+
         
         
         super().save(*args, **kwargs)

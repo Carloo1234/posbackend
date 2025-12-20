@@ -1,12 +1,12 @@
 {% extends 'pos/shop/shop_base.html' %} {% load static %} {% block head %}
 <script src="{% static 'pos/js/sidebar.js' %}" defer></script>
 {% endblock %} {% block content %}
-<div class="text-text flex p-10 h-full">
-    <div class="flex flex-col">
+<div class="text-text flex gap-5 p-10 h-full">
+    <div class="flex flex-col gap-2">
         <h2 class="text-lg font-bold">Varients:</h2>
         {% for product_variant in product.product_variants.all %}
         <button
-            class="select-btn flex gap-1 items-center p-2 rounded-md hover:bg-hover bg-transparent cursor-pointer"
+            class="select-btn flex gap-1 items-center w-44 px-4 py-2 rounded-md hover:bg-hover bg-transparent cursor-pointer"
             data-id="{{ product_variant.pk }}"
         >
             <img class="w-8 h-8 object-contain bg-white" src="{{ product_variant.get_image_url }}" alt="img" />
@@ -20,6 +20,15 @@
             </div>
         </button>
         {% endfor %}
+        <!-- Add new variant -->
+        <button class="flex gap-2 items-center w-44 px-4 py-2 rounded-md hover:bg-hover bg-transparent border border-border cursor-pointer">
+            <svg class="h-8 w-8 p-1 fill-text" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                <path d="M440-440H240q-17 0-28.5-11.5T200-480q0-17 11.5-28.5T240-520h200v-200q0-17 11.5-28.5T480-760q17 0 28.5 11.5T520-720v200h200q17 0 28.5 11.5T760-480q0 17-11.5 28.5T720-440H520v200q0 17-11.5 28.5T480-200q-17 0-28.5-11.5T440-240v-200Z"/>
+            </svg>
+            <span class="text-text">Add Variant</span>
+        </button>
+
+
     </div>
     <!-- Products -->
     {% for product_variant in product.product_variants.all %}
@@ -36,9 +45,17 @@
             <!-- Details -->
             <div class="flex flex-col gap-2 bg-surface rounded-lg p-3 h-96 shadow-md">
                 <div class="flex flex-col gap-2">
-                    <h1 class="font-bold text-2xl">{{ product_variant.name }}</h1>
+                    <!-- Name and attributes -->
+                    <div class="flex flex-col gap-1 ">
+                        <h1 class="header">{{ product.name }}</h1>
+                        <div class="text-secondary-text">
+                            {% for attribute in product_variant.product_attribute_values.all %}
+                            <span>{{ attribute }} </span>
+                            {% endfor %}
+                        </div>
+                    </div>
                     <div
-                        style="background-color: {{ product_variant.category.hex_code }};"
+                        style="background-color: {{ product.category.hex_code }};"
                         class="w-fit px-1.5 py-0.5 rounded-2xl text-sm"
                     >
                         {{ product.category.name }}
